@@ -20,23 +20,18 @@ const usePermission = (permissions?: number[]) => {
       return
     }
 
-    console.log('3333333')
+    // const matchesClone = cloneDeep(matches)
+    // const lastMatch = matchesClone.pop()
 
-    const matchesClone = cloneDeep(matches)
-    const lastMatch = matchesClone.pop()
+    // const needPermission = get(lastMatch.handle, 'permissions', permissions || [])
+    // if (!isEmpty(currentPermission) && needPermission?.length > 0) {
+    //   const isHavePermission = includePermission(currentPermission, needPermission)
 
-    const needPermission = get(lastMatch.handle, 'permissions', permissions || [])
-    console.log('4444444')
-    if (!isEmpty(currentPermission) && needPermission?.length > 0) {
-      console.log('5555555')
-      const isHavePermission = includePermission(currentPermission, needPermission)
-
-      if (!isHavePermission) {
-        console.log('666666')
-        navigate('/project-management', { replace: true })
-        return
-      }
-    }
+    //   if (!isHavePermission) {
+    //     navigate('/project-management', { replace: true })
+    //     return
+    //   }
+    // }
 
     return () => {}
   }, [currentPermission, permissions, matches])

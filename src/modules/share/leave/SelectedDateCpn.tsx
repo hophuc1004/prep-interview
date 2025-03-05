@@ -19,6 +19,7 @@ interface SelectedDateCpnProps {
   errorText?: boolean
   onClickToday?: () => void
   disabledDays?: DisabledDays
+  className?: string
 }
 
 function CustomDayContent(props: DayProps) {
@@ -48,7 +49,8 @@ const SelectedDateCpn: FC<SelectedDateCpnProps> = ({
   handleChangeDate,
   defaultValue,
   onClickToday,
-  disabledDays = []
+  disabledDays = [],
+  className
 }) => {
   const { t } = useTranslation()
 
@@ -65,7 +67,7 @@ const SelectedDateCpn: FC<SelectedDateCpnProps> = ({
       return
     }
 
-    return () => { }
+    return () => {}
   }, [])
 
   useEffect(() => {
@@ -149,7 +151,7 @@ const SelectedDateCpn: FC<SelectedDateCpnProps> = ({
               onClick={(e) => {
                 e.stopPropagation()
               }}
-              className='border bg-white shadow-depth02 rounded-smallNudge top-[65px] absolute'
+              className={classNames('border bg-white shadow-depth02 rounded-smallNudge absolute', className)}
               ref={datePickerRef}
             >
               <DayPicker

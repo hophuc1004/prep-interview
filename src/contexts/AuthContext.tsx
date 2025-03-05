@@ -26,7 +26,6 @@ const initialState: IAuthState = {
 const AuthContext = createContext(initialState)
 
 const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  console.log('1111111')
   const { t } = useTranslation()
   const [authState, setAuthState] = useState(initialState)
   const [isError, setIsError] = useState(false)

@@ -1,10 +1,16 @@
 import { RouteObject } from 'react-router-dom'
-import ProjectManagement from './containers/ProjectManagement'
+import { lazy, Suspense } from 'react'
+
+const ProjectManagement = lazy(() => import('./containers/ProjectManagement'))
 
 export const projectRoutes: RouteObject = {
   path: '*',
   index: true,
-  element: <ProjectManagement />,
+  element: (
+    <Suspense>
+      <ProjectManagement />
+    </Suspense>
+  ),
   handle: {
     title: 'Project Management',
     permissions: [

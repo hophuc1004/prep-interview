@@ -19,18 +19,24 @@ import { STORAGE_KEY } from '~/shared/constants/storage-key.const'
 import isEmpty from 'lodash/isEmpty'
 import { usePageHeaderContext } from '~/contexts/PageHeaderContext'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import usePermission from '~/hooks/usePermission'
 import NoInternetConnection from 'components/NoInternetConnection'
 
 const EmployeeLayout: React.FC = () => {
-  console.log('22222222')
   const [isNavExpanded, setNavExpanded] = useState(false)
 
   const { permissions, user } = useCurrentUser()
   const { t } = useTranslation()
   const { handleSetPageHeaderState } = usePageHeaderContext()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    if (pathname === '/') {
+      navigate(`/project-management`)
+    }
+  }, [navigate, pathname])
 
   usePermission()
 
