@@ -1,17 +1,13 @@
-import { useQuery } from '@tanstack/react-query'
-import { END_POINT } from '~/modules/auth/constant'
-import { getCurrentUser } from './request'
 import { useAuthContext } from '~/contexts/AuthContext'
-import { FC, PropsWithChildren, useEffect, useLayoutEffect, useState } from 'react'
-import { HttpStatusCode } from 'axios'
+import { FC, PropsWithChildren, useEffect, useState } from 'react'
 import { STORAGE_KEY } from '~/shared/constants/storage-key.const'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Loading } from 'components/Loading'
-import { Alert } from 'components/Alert'
 import { useTranslation } from 'react-i18next'
 import { emailValidation } from '~/shared/utils/util'
 const Authentication: FC<PropsWithChildren> = ({ children }) => {
   const { t } = useTranslation()
+  const [isLoading, setIsLoading] = useState(false)
   const {
     token,
     // user,
@@ -26,45 +22,67 @@ const Authentication: FC<PropsWithChildren> = ({ children }) => {
   const tokenParam = searchParams.get('token')
   const emailParam = searchParams.get('email')
   const typeParam = searchParams.get('type')
-  const { data, isError, error, isLoading } = useQuery({
-    queryKey: [END_POINT.currentUser],
-    queryFn: () => getCurrentUser(),
-    enabled: pathname !== '/google-auth',
-    retry: 1,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
-  })
 
   useEffect(() => {
-    if (pathname == '/project-management') {
-      if (pathname == '/project-management') {
-        return navigate(pathname)
-      }
-      navigate(pathname)
-      return
+    setIsLoading(true)
+
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 500)
+
+    return () => {
+      clearTimeout(timer)
+      setIsLoading(false)
     }
+  }, [])
 
-    if (error && 'statusCode' in error && error.statusCode === HttpStatusCode.Unauthorized) {
-      if (!pathname?.includes('/sign-in')) {
-        localStorage.removeItem(STORAGE_KEY.ACCESS_TOKEN)
-        resetAuthState()
-        return navigate('/sign-in', { replace: true })
-      }
-    }
-
-    // if (data && !isLoading) {
-    //   setUser(data.data)
-    //   if (pathname && pathname !== '/' && pathname !== '/sign-in') {
-    //     return navigate(pathname)
-    //   }
-    //   return navigate('project-management')
-    // }
-
-    if (isError) {
+  useEffect(() => {
+    if (!token) {
+      resetAuthState()
       return navigate('/sign-in', { replace: true })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isError, error, data, token])
+    return () => {}
+  }, [token])
+
+  // const { data, isError, error, isLoading } = useQuery({
+  //   queryKey: [END_POINT.currentUser],
+  //   queryFn: () => getCurrentUser(),
+  //   enabled: pathname !== '/google-auth',
+  //   retry: 1,
+  //   refetchOnMount: false,
+  //   refetchOnWindowFocus: false
+  // })
+
+  // useEffect(() => {
+  //   if (pathname == '/project-management') {
+  //     if (pathname == '/project-management') {
+  //       return navigate(pathname)
+  //     }
+  //     navigate(pathname)
+  //     return
+  //   }
+
+  //   if (error && 'statusCode' in error && error.statusCode === HttpStatusCode.Unauthorized) {
+  //     if (!pathname?.includes('/sign-in')) {
+  //       localStorage.removeItem(STORAGE_KEY.ACCESS_TOKEN)
+  //       resetAuthState()
+  //       return navigate('/sign-in', { replace: true })
+  //     }
+  //   }
+
+  //   // if (data && !isLoading) {
+  //   //   setUser(data.data)
+  //   //   if (pathname && pathname !== '/' && pathname !== '/sign-in') {
+  //   //     return navigate(pathname)
+  //   //   }
+  //   //   return navigate('project-management')
+  //   // }
+
+  //   if (isError) {
+  //     return navigate('/sign-in', { replace: true })
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [isError, error, data, token])
 
   const handleUnAuthorized = () => {
     resetAuthState()

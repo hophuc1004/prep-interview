@@ -1,5 +1,5 @@
 import { TabBar, TabItem } from 'components/TabBar'
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import useCurrentUser from '~/hooks/useCurrentUser'
 import isEmpty from 'lodash/isEmpty'
@@ -9,25 +9,18 @@ import ProjectList from './ProjectList'
 import { isNil, isUndefined } from 'lodash'
 
 const ProjectManagement: React.FC = () => {
-  console.log('11111111111')
   const param = useParams()
-  console.log('param:', param)
-  // const tabActive = 'project-list'
   const tabActive = param['*']
-  console.log('tabActive:', tabActive.length)
-  console.log('tabActive:', tabActive)
 
   const navigate = useNavigate()
 
   const { t } = useTranslation()
 
-  const { permissions } = useCurrentUser()
+  const { currentRole, user } = useCurrentUser()
 
   useEffect(() => {
     if (!tabActive || isNil(tabActive) || isUndefined(tabActive) || isEmpty(tabActive)) {
-      console.log('9999999999')
       navigate('/project-management/project-list', { replace: true })
-      console.log('88888888888')
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -37,7 +30,7 @@ const ProjectManagement: React.FC = () => {
     {
       key: 'project-list',
       name: 'Project List',
-      component: <ProjectList />
+      component: <ProjectList userRole={currentRole} userProjects={user?.userProject} />
     }
   ]
 

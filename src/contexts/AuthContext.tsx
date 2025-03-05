@@ -2,16 +2,16 @@
 import { Alert } from 'components/Alert'
 import React, { ReactNode, createContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { TABLE_USER_PROJECT, TABLE_USER_ROLE, VALID_CREDENTIALS } from '~/shared/constants/project'
 import { STORAGE_KEY } from '~/shared/constants/storage-key.const'
 import { UserInfo } from '~/shared/types/user-info'
 
 interface IAuthState {
   isAuthentication: boolean
-  user: UserInfo | null
+  user: any
   token: string
   isLoading: boolean
-  setUser?: (user: UserInfo) => void
+  setUser?: (user: any) => void
   setToken?: (token: string) => void
   resetAuthState?: () => void
 }
@@ -32,9 +32,26 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem(STORAGE_KEY.ACCESS_TOKEN)
+    const userEmail = localStorage.getItem(STORAGE_KEY.USER_EMAIL)
 
     if (token) {
       setAuthState((prev) => ({ ...prev, token }))
+    }
+
+    if (token && userEmail) {
+      const findUser = VALID_CREDENTIALS.find((item) => item.email === userEmail)
+      const userRole = TABLE_USER_ROLE.find((item) => item.userId === findUser.id)
+
+      const userProject = TABLE_USER_PROJECT.filter((item) => item.userId === findUser.id)
+
+      const dataUserReturn = {
+        id: findUser.id,
+        email: findUser.email,
+        role: userRole?.role,
+        userProject
+      }
+
+      setAuthState((prev) => ({ ...prev, user: dataUserReturn }))
     }
 
     window.addEventListener('storage', (event) => {

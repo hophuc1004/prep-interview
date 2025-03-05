@@ -3,32 +3,7 @@ import { END_POINT } from './constant'
 import { BaseResponse } from '~/shared/types/api-response'
 import { UserInfo } from '~/shared/types/user-info'
 import httpClient from '~/shared/utils/http-client'
-
-export const PASS_WORD = {
-  PASS_ADMIN: 'admin123123',
-  PASS_OWNER: 'owner123123',
-  PASS_DEVELOPER: 'developer123123',
-  PASS_VIEWER: 'viewer123123'
-}
-
-export const VALID_CREDENTIALS = [
-  {
-    email: 'admin@yopmail.com',
-    password: PASS_WORD['PASS_ADMIN']
-  },
-  {
-    email: 'owner@yopmail.com',
-    password: PASS_WORD['PASS_OWNER']
-  },
-  {
-    email: 'developer@yopmail.com',
-    password: PASS_WORD['PASS_DEVELOPER']
-  },
-  {
-    email: 'viewer@yopmail.com',
-    password: PASS_WORD['PASS_VIEWER']
-  }
-]
+import { TABLE_USER_PROJECT, TABLE_USER_ROLE, VALID_CREDENTIALS } from '~/shared/constants/project'
 
 export const loginRequest = async ({ email, password }: { email: string; password: string }) => {
   if (!email) {
@@ -47,6 +22,17 @@ export const loginRequest = async ({ email, password }: { email: string; passwor
 
   const user = await VALID_CREDENTIALS.find((item) => item.email === email)
 
+  const userRole = await TABLE_USER_ROLE.find((item) => item.userId === user?.id)
+
+  const userProject = await TABLE_USER_PROJECT.filter((item) => item.userId === user.id)
+
+  const dataUserReturn = {
+    id: user.id,
+    email: user.email,
+    role: userRole?.role,
+    userProject
+  }
+
   if (!user) {
     return {
       statusCode: 400,
@@ -63,7 +49,7 @@ export const loginRequest = async ({ email, password }: { email: string; passwor
 
   return {
     token: 'hereareexampletoken',
-    user: user
+    user: dataUserReturn
   } as any
 }
 
