@@ -24,7 +24,7 @@ const AuthLayout = () => {
         {/* <LanguageSelector className='mr-[16px]' /> */}
       </div>
       <div className='mx-auto bg-gray-50'>
-        <div className='flex w-screen h-[calc(100vh-75px)] bg-[url(assets/images/login_bg.svg)]  justify-center bg-no-repeat bg-right-bottom'>
+        <div className='flex w-screen h-[calc(100vh-75px)] bg-[url(assets/images/login-bg.svg)]  justify-center bg-no-repeat bg-right-bottom'>
           <div className='items-center content-center min-w-[394px] justify-center bg-white rounded-xl h-fit mt-10'>
             <Outlet />
           </div>

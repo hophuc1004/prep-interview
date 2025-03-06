@@ -1,2 +1,2 @@
-aws s3 sync dist s3://cs-hrm-fe --delete --profile codestringers
-aws cloudfront create-invalidation --distribution-id E2JN217O5A24O6 --paths "/*" --profile codestringers
+aws s3 sync dist s3://hominute.xyz --delete --profile hophuc1004
+aws cloudfront create-invalidation --distribution-id E11XD1DRWUOAKE --paths "/*" --profile hophuc1004
