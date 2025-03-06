@@ -31,7 +31,6 @@ const ModalAddUser: React.FC<React.PropsWithChildren<ModalAddUserProps>> = ({
   visible,
   onCancel,
   headerTitle,
-  data,
   isLoading,
   errorServer
 }) => {

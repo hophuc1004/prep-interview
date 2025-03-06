@@ -6,7 +6,14 @@ import { ExpandMoreIconWhite } from '~/shared/icons/ExpandMoreIcon'
 import { getPhoneCode } from 'libphonenumber-js'
 import africa from '~/assets/images/AC.svg'
 import ta from '~/assets/images/ta.svg'
-import { Countries, CountryInfo } from '~/modules/employee/types'
+import { CountryCode } from 'libphonenumber-js'
+
+export interface CountryInfo {
+  countryCode: CountryCode
+  name: string
+  phoneLimit: number
+}
+export interface Countries extends Array<CountryInfo> {}
 
 interface CountrySelectProps {
   options: Countries
