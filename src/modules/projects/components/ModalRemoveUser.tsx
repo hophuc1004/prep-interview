@@ -1,28 +1,19 @@
 import { Button } from 'components/Button'
 import { Modal } from 'components/Modal'
-import { CustomTextArea } from 'components/TextArea'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-interface WarningActiveLeaveRequestProps {
+interface ModalRemoveUserProps {
   visible: boolean
   onApply?: () => void
   onCancel?: () => void
-  handleChangeReason?: (value: any) => void
-  reason?: string
-  error?: boolean
-  helperText?: string
   title?: string
 }
 
-export const WarningActiveLeaveRequestModal: React.FC<React.PropsWithChildren<WarningActiveLeaveRequestProps>> = ({
+const ModalRemoveUser: React.FC<React.PropsWithChildren<ModalRemoveUserProps>> = ({
   visible,
   onApply,
   onCancel,
-  handleChangeReason,
-  reason,
-  error,
-  helperText,
   title
 }) => {
   const { t } = useTranslation()
@@ -30,7 +21,7 @@ export const WarningActiveLeaveRequestModal: React.FC<React.PropsWithChildren<Wa
   const renderHeaderModal = () => {
     return (
       <div className='w-full'>
-        <h2 className='typography-title-md font-bold text-gray-800'>{title}</h2>
+        <h2 className='typography-body-md text-gray-800'>{title}</h2>
       </div>
     )
   }
@@ -39,11 +30,11 @@ export const WarningActiveLeaveRequestModal: React.FC<React.PropsWithChildren<Wa
     return (
       <div className='flex justify-end space-x-2'>
         <Button style='outline' onClick={onCancel && onCancel}>
-          {t('approver.warningReject.btnDiscard')}
+          {t('Cancel')}
         </Button>
 
         <Button style='filled' onClick={onApply && onApply}>
-          {t('approver.warningReject.btnConfirm')}
+          {'Confirm'}
         </Button>
       </div>
     )
@@ -54,18 +45,12 @@ export const WarningActiveLeaveRequestModal: React.FC<React.PropsWithChildren<Wa
       visible={visible}
       header={renderHeaderModal()}
       footer={renderFooterModal()}
-      modalWrapperClassName='w-[600px]'
+      modalWrapperClassName='w-[500px]'
       closeable={false}
     >
-      <CustomTextArea
-        onChange={handleChangeReason}
-        value={reason}
-        error={error}
-        placeholder={t('approver.warningReject.placeholder')}
-        maxLength={1000}
-        helperText={helperText}
-        minHeight='min-h-[160px]'
-      />
+      <p className='typography-body-md text-gray-800'></p>
     </Modal>
   )
 }
+
+export default ModalRemoveUser

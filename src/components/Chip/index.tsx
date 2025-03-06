@@ -25,6 +25,7 @@ export const Chip: React.FC<React.PropsWithChildren<ChipProps>> = ({
 
   switch (type) {
     case 'In-review':
+    case 'Pending':
     case 'Draft':
       backgroundColor = 'bg-yellow-500'
       textColor = 'text-gray-800'

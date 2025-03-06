@@ -37,9 +37,7 @@ export const AppBar: React.FC<React.PropsWithChildren<AppBarProps>> = ({
           <p className='ml-2 typography-title-md font-semibold text-white'>Minutes</p>
         </div>
       </div>
-      <div className='flex'>
-        <LanguageSelector />
-      </div>
+      <div className='flex'>{/* <LanguageSelector /> */}</div>
     </div>
   )
 }

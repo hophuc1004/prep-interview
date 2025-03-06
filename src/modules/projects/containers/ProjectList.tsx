@@ -242,11 +242,11 @@ const ProjectList = ({ userRole, userProjects }: { userRole?: string; userProjec
           height={viewportHeight - 316}
           estimateSize={estimateSize}
           onRowClick={(row) => {
-            const employeeId = row?.departments?.[0]?.employeeId
-            if (!employeeId) {
+            const projectId = row?.id
+            if (!projectId) {
               return null
             }
-            navigate(`/employee-management/on-boarding/employee/checklist/${employeeId}`) // need to pass employeeId to view checklist of one employee
+            navigate(`/project-management/project-list/detail/${projectId}`) // need to pass employeeId to view checklist of one employee
             return
           }}
           isLoadMore={isFetching}

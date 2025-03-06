@@ -114,6 +114,10 @@ const PageHeader = () => {
         setParentUrl(get(lastMatch.handle, 'parent', null))
       }
 
+      if (lastMatch.params['projectId'] === 'projectId') {
+        setPageTitle(get(lastMatch.handle, 'title', ''))
+      }
+
       if (lastMatch && lastMatch.pathname === '/review/manage') {
         setPageTitle('360° Review')
       }

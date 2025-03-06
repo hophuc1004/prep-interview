@@ -3,29 +3,27 @@ import { Modal } from 'components/Modal'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-interface SubAndPreSubmitModalProps {
+interface ModalWarningLockAndUnlockProps {
   visible: boolean
   onApply?: () => void
   onCancel?: () => void
-  headerTitle?: string
-  btnName?: string
-  description?: string
+  title?: string
+  isLocked?: boolean
 }
 
-const SubAndPreSubmitModal: React.FC<React.PropsWithChildren<SubAndPreSubmitModalProps>> = ({
+const ModalWarningLockAndUnlock: React.FC<React.PropsWithChildren<ModalWarningLockAndUnlockProps>> = ({
   visible,
   onApply,
   onCancel,
-  headerTitle,
-  btnName,
-  description
+  title,
+  isLocked
 }) => {
   const { t } = useTranslation()
 
   const renderHeaderModal = () => {
     return (
       <div className='w-full'>
-        <h2 className='typography-title-md font-bold text-gray-800'>{headerTitle}</h2>
+        <h2 className='typography-body-md text-gray-800'>{title}</h2>
       </div>
     )
   }
@@ -34,11 +32,11 @@ const SubAndPreSubmitModal: React.FC<React.PropsWithChildren<SubAndPreSubmitModa
     return (
       <div className='flex justify-end space-x-2'>
         <Button style='outline' onClick={onCancel && onCancel}>
-          {t('common.discard')}
+          {t('Cancel')}
         </Button>
 
         <Button style='filled' onClick={onApply && onApply}>
-          {btnName}
+          {isLocked ? 'Unlocked' : 'Locked'}
         </Button>
       </div>
     )
@@ -49,12 +47,12 @@ const SubAndPreSubmitModal: React.FC<React.PropsWithChildren<SubAndPreSubmitModa
       visible={visible}
       header={renderHeaderModal()}
       footer={renderFooterModal()}
-      modalWrapperClassName='w-[600px]'
+      modalWrapperClassName='w-[500px]'
       closeable={false}
     >
-      <p className='typography-body-md text-gray-800'>{description}</p>
+      <p className='typography-body-md text-gray-800'></p>
     </Modal>
   )
 }
 
-export default SubAndPreSubmitModal
+export default ModalWarningLockAndUnlock

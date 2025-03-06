@@ -4,7 +4,7 @@ import EmployeeLayout from './layouts/EmployeeLayout'
 import { Authentication, authRoutes } from './modules/auth'
 import NotFoundPage from './pages/NotFoundPage'
 import PermissionDeniedPage from './pages/PermissionDeniedPage'
-import { projectRoutes } from './modules/projects/routes'
+import { projectDetailRoutes, projectRoutes } from './modules/projects/routes'
 
 const AppRoutes = createBrowserRouter([
   {
@@ -14,7 +14,10 @@ const AppRoutes = createBrowserRouter([
         <EmployeeLayout />
       </Authentication>
     ),
-    children: [{ path: 'project-management', children: [projectRoutes] }]
+    children: [
+      { path: 'project-management', children: [projectRoutes] },
+      { path: 'project-management/project-list/detail', children: [projectDetailRoutes] }
+    ]
   },
   {
     path: '*',

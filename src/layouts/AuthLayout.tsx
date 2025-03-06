@@ -21,7 +21,7 @@ const AuthLayout = () => {
           }}
           src={LogoMinute}
         />
-        <LanguageSelector className='mr-[16px]' />
+        {/* <LanguageSelector className='mr-[16px]' /> */}
       </div>
       <div className='mx-auto bg-gray-50'>
         <div className='flex w-screen h-[calc(100vh-75px)] bg-[url(assets/images/login_bg.svg)]  justify-center bg-no-repeat bg-right-bottom'>

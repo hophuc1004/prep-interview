@@ -50,6 +50,12 @@ export const ROLE_PROJECT = {
   VIEWER: 'Viewer'
 }
 
+export const ARR_ROLE_PROJECT = [
+  { id: 1, name: ROLE_PROJECT['OWNER'] },
+  { id: 1, name: ROLE_PROJECT['DEVELOPER'] },
+  { id: 1, name: ROLE_PROJECT['VIEWER'] }
+]
+
 export const TABLE_USER_ROLE = [
   {
     id: 'IdUserRole1',
@@ -113,8 +119,9 @@ export const TABLE_DATA_PROJECT = [
         name: 'ImageNet Preprocessed',
         description: 'Processed ImageNet dataset for classification tasks',
         project_id: '550e8400-e29b-41d4-a716-446655440000',
-        is_locked: false,
+        is_locked: true,
         metadata: {},
+        tag: 'train',
         created_at: '2024-01-15T08:00:00Z',
         updated_at: '2024-02-18T14:45:00Z',
         data: [
@@ -301,6 +308,7 @@ export const TABLE_DATA_PROJECT = [
         project_id: 'c8a1cfc0-4c2b-11ee-be56-0242ac120002',
         is_locked: false,
         metadata: {},
+        tag: 'test',
         created_at: '2024-02-05T12:00:00Z',
         updated_at: '2024-02-20T14:00:00Z',
         data: [
@@ -647,6 +655,7 @@ export const TABLE_DATA_PROJECT = [
         name: 'Dataset Test 0401 ',
         description: 'Processed ImageNet dataset for classification tasks',
         project_id: '450e8400-e29b-41d4-a716-446655440004',
+        tag: '2024',
         is_locked: false,
         metadata: {},
         created_at: '2024-01-15T08:00:00Z',
@@ -835,6 +844,7 @@ export const TABLE_DATA_PROJECT = [
         project_id: '58a1cfc0-4c2b-11ee-be56-0242ac120005',
         is_locked: false,
         metadata: {},
+        tag: '2025',
         created_at: '2024-02-05T12:00:00Z',
         updated_at: '2024-02-20T14:00:00Z',
         data: [
@@ -1185,6 +1195,7 @@ export const TABLE_DATA_PROJECT = [
         metadata: {},
         created_at: '2024-01-15T08:00:00Z',
         updated_at: '2024-02-18T14:45:00Z',
+        tag: 'train',
         data: [
           {
             id: 'c9b1d2f0-4c2b-11ee-be56-0242ac120002',
@@ -1371,6 +1382,7 @@ export const TABLE_DATA_PROJECT = [
         metadata: {},
         created_at: '2024-02-05T12:00:00Z',
         updated_at: '2024-02-20T14:00:00Z',
+        tag: 'test',
         data: [
           {
             id: 'd2a4b5c6-7e8f-490a-92b1-1e3d5c7b6a4f',

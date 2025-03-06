@@ -5,10 +5,13 @@ import CheckedActiveIcon from '~/shared/icons/CheckedActiveIcon'
 import { twMerge } from 'tailwind-merge'
 import { useTranslation } from 'react-i18next'
 import { Tooltip as ReactTooltip } from 'react-tooltip'
+import InfoNoBgIcon from '~/shared/icons/InfoNoBgIcon'
 
 interface OptionProps {
   id?: number
   name?: string
+  isDisabled?: boolean
+  key?: string
 }
 interface CustomSelectProps {
   options?: Array<OptionProps>
@@ -26,6 +29,13 @@ interface CustomSelectProps {
   icon?: React.ReactNode
   isDisabledOption?: boolean
   isFixed?: boolean
+  isBorderDropdown?: boolean // style for border select dropdown
+  styleValue?: string // style for fontsize item dropdown
+  styleDropdown?: string // style for fontsize item dropdown
+  widthDropdown?: string // style for width of dropdown
+  widthInput?: string // style for width of input dropdown
+  heightInput?: string // style for height of input dropdown
+  contentTooltipDisabled?: string // content in tooltip
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -43,7 +53,14 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   disabled,
   icon,
   isDisabledOption,
-  isFixed
+  isFixed,
+  isBorderDropdown = true,
+  styleValue,
+  styleDropdown,
+  widthDropdown,
+  widthInput,
+  heightInput,
+  contentTooltipDisabled
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [, setSelectedOption] = useState(null)
@@ -90,9 +107,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     if (value) {
       return (
         <span
-          className={classNames('items-start typography-body-md', className, {
+          className={classNames('items-start typography-body-md text-[14px]', className, {
             'text-gray-400': disabled,
-            'text-gray-800': !disabled
+            'text-gray-800': !disabled,
+            [`${styleValue}`]: !!styleValue
           })}
         >
           {value.name}
@@ -100,12 +118,18 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       )
     } else if (defaultChecked) {
       return (
-        <span className={classNames('items-start typography-body-md text-gray-800', className)}>
+        <span
+          className={classNames('items-start typography-body-md text-gray-800 text-[14px]', className, {
+            [`${styleValue}`]: !!styleValue
+          })}
+        >
           {defaultChecked.name}
         </span>
       )
     } else {
-      return <span className='items-start typography-body-md font-normal text-gray-400'>{t(placeholder)}</span>
+      return (
+        <span className='items-start typography-body-md font-normal text-gray-400 text-[14px]'>{t(placeholder)}</span>
+      )
     }
   }
 
@@ -123,18 +147,21 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         <div
           tabIndex={2}
           className={classNames(
-            'w-full inline-flex justify-between rounded-md text-sm text-gray-700 overflow-y-hidden no-scrollbar',
+            'inline-flex items-center justify-between rounded-md text-sm text-gray-700 overflow-y-hidden no-scrollbar',
             className,
             {
               'focus-within:outline-primary-100 focus-within:outline hover:border-primary-500 focus-within:outline-[3px] focus-within:border-primary-500':
                 !isCustomDefault && !disabled,
               'bg-gray-100 cursor-not-allowed': disabled,
               ['border-[1.5px]']: !isCustomDefault,
-              ['py-2']: !isCustomDefault,
-              ['h-[40px]']: !isCustomDefault,
-              ['px-3']: !isCustomDefault,
+              ['py-2']: !isCustomDefault && !heightInput,
+              ['h-[40px]']: !isCustomDefault && !heightInput,
+              ['px-3']: !isCustomDefault && !heightInput,
               ['border-red-500 border-[1.5px']: error,
-              ['hover:border-primary-500 ']: !disabled
+              ['hover:border-primary-500 ']: !disabled,
+              'w-full': !widthInput,
+              [`${widthInput} px-[10px]`]: !!widthInput,
+              [`${heightInput}`]: !!heightInput
             }
           )}
           onClick={toggleDropdown}
@@ -146,11 +173,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         {isOpen && (
           <ul
             className={classNames(
-              'z-10 bg-white border border-gray-300 rounded-md shadow-depth02',
+              'z-10 bg-white  rounded-md shadow-depth02',
               {
                 ['top-8 w-full']: isCustomDefault,
                 'absolute w-full': !isFixed,
-                'fixed w-[336px]': isFixed
+                'fixed w-[336px]': isFixed,
+                ['border border-gray-300']: isBorderDropdown,
+                [`${widthDropdown}`]: !!widthDropdown
               },
               className
             )}
@@ -164,13 +193,14 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                     key={option?.id}
                     data-tooltip-id={`isDisabledOption-${option?.id}`}
                     className={classNames(
-                      'px-4 py-2 hover:bg-gray-100 flex justify-between items-center cursor-pointer',
+                      'px-4 py-2 last:rounded-b-md first:rounded-t-md hover:bg-gray-100 flex justify-between items-center cursor-pointer',
                       {
-                        'bg-gray-100 !cursor-not-allowed': isDisabledOption && option?.name === 'Project Manager'
+                        '!cursor-not-allowed':
+                          isDisabledOption && (option?.name === 'Project Manager' || option?.isDisabled)
                       }
                     )}
                     onClick={() => {
-                      if (isDisabledOption && option?.name === 'Project Manager') {
+                      if (isDisabledOption && (option?.name === 'Project Manager' || option?.isDisabled)) {
                         return
                       } else {
                         handleOptionClick(option)
@@ -178,15 +208,27 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                       }
                     }}
                   >
-                    <p className='typography-body-md font-light'>{t(option.name)}</p>
+                    <p
+                      className={classNames('typography-body-md font-light', {
+                        [`${styleDropdown}`]: !!styleDropdown && !option?.isDisabled,
+                        'typography-body-sm font-normal !text-gray-400': option?.isDisabled,
+                        '!text-gray-400': option?.name === 'Project Manager'
+                      })}
+                    >
+                      {t(option.name)}
+                    </p>
                     {isChecked && <CheckedActiveIcon width={16} height={16} className='text-primary-600' />}
-                    {isDisabledOption && option?.name === 'Project Manager' && (
+                    {isDisabledOption && (option?.name === 'Project Manager' || option?.isDisabled) && (
+                      <InfoNoBgIcon className='cursor-not-allowed' width={20} height={20} />
+                    )}
+                    {isDisabledOption && (option?.name === 'Project Manager' || option?.isDisabled) && (
                       <ReactTooltip
                         id={`isDisabledOption-${option?.id}`}
                         place='bottom'
-                        className='bg-gray-800 font-light z-[51000] !rounded-xl'
+                        className='bg-gray-800 font-light z-[51000] w-8/12 !rounded-xl'
+                        style={{ position: 'fixed', width: '60%' }}
                       >
-                        {t('Only one Project Manager per project.')}
+                        {t(contentTooltipDisabled)}
                       </ReactTooltip>
                     )}
                   </li>
