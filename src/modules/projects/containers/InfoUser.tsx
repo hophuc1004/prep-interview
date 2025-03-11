@@ -1,6 +1,5 @@
 import classNames from 'classnames'
-import { CloseIcon } from '~/shared/icons'
-
+import CloseIcon from '~/shared/icons/CloseIcon'
 interface InfoUserProps {
   email?: string
   role?: string

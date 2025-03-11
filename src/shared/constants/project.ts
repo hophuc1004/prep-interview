@@ -52,28 +52,28 @@ export const ROLE_PROJECT = {
 
 export const ARR_ROLE_PROJECT = [
   { id: 1, name: ROLE_PROJECT['OWNER'] },
-  { id: 1, name: ROLE_PROJECT['DEVELOPER'] },
-  { id: 1, name: ROLE_PROJECT['VIEWER'] }
+  { id: 2, name: ROLE_PROJECT['DEVELOPER'] },
+  { id: 3, name: ROLE_PROJECT['VIEWER'] }
 ]
 
 export const TABLE_USER_ROLE = [
   {
-    id: 'IdUserRole1',
+    id: 1,
     userId: ID_ROLE_USER['ADMIN'],
     role: ROLE_USER['ADMIN']
   },
   {
-    id: 'IdUserRole2',
+    id: 2,
     userId: ID_ROLE_PROJECT['OWNER'],
     role: ROLE_USER['USER']
   },
   {
-    id: 'IdUserRole3',
+    id: 3,
     userId: ID_ROLE_PROJECT['DEVELOPER'],
     role: ROLE_USER['USER']
   },
   {
-    id: 'IdUserRole4',
+    id: 4,
     userId: ID_ROLE_PROJECT['VIEWER'],
     role: ROLE_USER['USER']
   }
@@ -81,28 +81,36 @@ export const TABLE_USER_ROLE = [
 
 export const TABLE_USER_PROJECT = [
   {
-    id: 'IdUserProject1',
+    id: 1,
     userId: ID_ROLE_PROJECT['OWNER'],
     projectId: '550e8400-e29b-41d4-a716-446655440000',
     role: ROLE_PROJECT['OWNER']
   },
   {
-    id: 'IdUserProject2',
+    id: 2,
     userId: ID_ROLE_PROJECT['OWNER'],
     projectId: 'c8a1cfc0-4c2b-11ee-be56-0242ac120002',
     role: ROLE_PROJECT['OWNER']
   },
   {
-    id: 'IdUserProject3',
+    id: 3,
     userId: ID_ROLE_PROJECT['DEVELOPER'],
     projectId: '550e8400-e29b-41d4-a716-446655440000',
     role: ROLE_PROJECT['DEVELOPER']
   },
   {
-    id: 'IdUserProject5',
+    id: 4,
     userId: ID_ROLE_PROJECT['VIEWER'],
     projectId: '550e8400-e29b-41d4-a716-446655440000',
     role: ROLE_PROJECT['VIEWER']
+  }
+]
+
+export const TABLE_DATASET = [
+  {
+    id: 1,
+    name: 'Dataset 01',
+    description: 'This is description of dataset 01'
   }
 ]
 

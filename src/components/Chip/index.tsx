@@ -1,7 +1,6 @@
 import classnames from 'classnames'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
-import { CloseIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 
 interface ChipProps {
   children: React.ReactNode

@@ -1,24 +1,11 @@
 import { useParams } from 'react-router-dom'
 import ScrollBar from 'components/Scrollbar'
-import { usePageHeaderContext } from '~/contexts/PageHeaderContext'
-import { useEffect, useRef, useState } from 'react'
-
-import { useAlert } from '~/contexts/AlertContext'
+import { useEffect, useState } from 'react'
 import useCurrentUser from '~/hooks/useCurrentUser'
 import classNames from 'classnames'
-import { FormProvider } from 'components/hook-form/FormProvider'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { PreviewFile } from 'components/PreviewFile'
-// import ModalCreateNewTask from '../modals/ModalCreateNewTask'
-import { handleLinkTime } from '~/modules/share/helper'
-import { PlusIcon } from '~/shared/icons'
 import { Button } from 'components/Button'
-// import ModalViewEditInfoTaskOnboarding from './modals/ModalViewEditInfoTaskOnboarding'
-// import { useEmLifeCycleContext } from '~/modules/employee/contexts/EmployeeOnboardingDetailContext'
-// import { useEmployeeManageContext } from '~/modules/employee/contexts/EmployeeManageContext'
-
-// import ModalConfirmDeleteTask from '../modals/ModalConfirmDeleteTask'
 import { ROLE_PROJECT } from '~/shared/constants/project'
 import GroupData from './GroupData'
 import ModalViewRightDetail from './ModalViewRightDetail'
@@ -30,17 +17,15 @@ import ModalViewChildDataset from '../components/ModalViewChildDataset'
 import ModalEditTag from '../components/ModalEditTag'
 import ModalRemoveUser from '../components/ModalRemoveUser'
 import ModalAddUser from '../components/ModalAddUser'
+import PlusIcon from '~/shared/icons/PlusIcon'
+import { getProjectDetailDB } from '~/dbIndexedDB'
 
 interface PersonalInfoProps {
-  employeeId?: number
-  isMyProfile?: boolean
   isFullWidth?: boolean
   isCustomWidthScroll?: boolean
-  employeeStatus?: number
-  setShowEmployeeSidebar?: (show: boolean) => void
 }
 
-const ProjectDetail: React.FC<PersonalInfoProps> = ({ employeeId, isFullWidth, isCustomWidthScroll }) => {
+const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidthScroll }) => {
   const param = useParams()
 
   const [defaultValues, setDefaultValues] = useState({})
@@ -75,6 +60,9 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ employeeId, isFullWidth, i
   useEffect(() => {
     const fetchProjectDetail = async () => {
       if (projectId) {
+        const dataTest = await getProjectDetailDB(Number(projectId))
+        console.log('dataTest:', dataTest)
+
         const projectDta = await getProjectDetail({ projectId, userId: user?.id })
         if (projectDta) {
           setDetailProject(projectDta)
@@ -195,7 +183,7 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ employeeId, isFullWidth, i
 
   return (
     <>
-      <div className={classNames('flex', { 'bg-white': employeeId })}>
+      <div className={classNames('flex')}>
         <div
           className={classNames('pt-4 px-4 flex flex-col gap-4 mx-auto', {
             'max-w-[1220px]': !taskId && !isFullWidth, // Apply max-width of 1220px when right side is hidden

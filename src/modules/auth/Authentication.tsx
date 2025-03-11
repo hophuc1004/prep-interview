@@ -8,12 +8,7 @@ import { emailValidation } from '~/shared/utils/util'
 const Authentication: FC<PropsWithChildren> = ({ children }) => {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
-  const {
-    token,
-    // user,
-    resetAuthState,
-    setUser
-  } = useAuthContext()
+  const { token, resetAuthState } = useAuthContext()
   const navigate = useNavigate()
   const locationStore = useLocation()
   const pathname = window.location.pathname

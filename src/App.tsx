@@ -6,10 +6,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import AuthProvider from '~/contexts/AuthContext'
 import i18n from './languages/i18n'
 import { I18nextProvider } from 'react-i18next'
-import Version from 'components/Version'
 import PageHeaderProvider from './contexts/PageHeaderContext'
 import { AlertProvider } from './contexts/AlertContext'
 import { ModalProvider } from './contexts/ModalContext'
+import { initializeApp } from './dbIndexedDB'
 
 function App() {
   const queryClient = useRef(
@@ -22,6 +22,17 @@ function App() {
       }
     })
   )
+
+  async function startApp() {
+    try {
+      // Gọi khi ứng dụng khởi động (truy cập lần đầu)
+      await initializeApp()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  // startApp()
 
   return (
     <div>

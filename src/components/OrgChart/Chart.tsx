@@ -3,9 +3,9 @@ import { debounce } from 'lodash'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch'
-import { NewPlusIcon } from '~/shared/icons'
 import DownloadIcon from '~/shared/icons/DownloadIcon'
 import MinusIcon from '~/shared/icons/MinusIcon'
+import NewPlusIcon from '~/shared/icons/NewPlusIcon'
 
 const Controls = () => {
   const { zoomIn, zoomOut } = useControls()

@@ -1,7 +1,7 @@
 import classnames from 'classnames'
 import ScrollBar from 'components/Scrollbar'
 import React from 'react'
-import { CloseIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 
 interface ModalProps {
   visible: boolean
@@ -21,7 +21,7 @@ export const ModalV2: React.FC<React.PropsWithChildren<ModalProps>> = ({
   footer,
   modalWrapperClassName,
   closeable = false,
-  innerClassName = 'px-[40px] py-[16px]',
+  innerClassName = 'px-[40px] py-[16px]'
 }) => {
   if (!visible) {
     return

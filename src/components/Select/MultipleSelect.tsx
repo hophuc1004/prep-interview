@@ -2,10 +2,9 @@ import classNames from 'classnames'
 import ScrollBar from 'components/Scrollbar'
 import React, { useEffect, useRef, useState } from 'react'
 import CheckedActiveIcon from '~/shared/icons/CheckedActiveIcon'
-import ExpandMoreIcon from '~/shared/icons/ExpandMoreIcon'
 import { twMerge } from 'tailwind-merge'
 import { useTranslation } from 'react-i18next'
-import { CloseIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 
 interface OptionProps {
   id?: number

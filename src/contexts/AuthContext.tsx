@@ -2,7 +2,8 @@
 import { Alert } from 'components/Alert'
 import React, { ReactNode, createContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TABLE_USER_PROJECT, TABLE_USER_ROLE, VALID_CREDENTIALS } from '~/shared/constants/project'
+import { ROLE_USER } from '~/dataExample'
+import { findOneRoleUserById, findOneUserByEmail, getAllProjects, getAllProjectsByUserId } from '~/dbIndexedDB'
 import { STORAGE_KEY } from '~/shared/constants/storage-key.const'
 import { UserInfo } from '~/shared/types/user-info'
 
@@ -34,25 +35,39 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const token = localStorage.getItem(STORAGE_KEY.ACCESS_TOKEN)
     const userEmail = localStorage.getItem(STORAGE_KEY.USER_EMAIL)
 
-    if (token) {
-      setAuthState((prev) => ({ ...prev, token }))
+    const getData = async (userEmail) => {
+      const findUser: any = await findOneUserByEmail(userEmail)
+      const userRole: any = await findOneRoleUserById(findUser?.id)
+      const userProject = await getAllProjectsByUserId(findUser?.id)
+      const allProject = await getAllProjects()
+
+      return {
+        id: findUser?.id,
+        email: findUser?.email,
+        role: userRole?.role,
+        userProject: userRole?.role === ROLE_USER['ADMIN'] ? allProject : userProject
+      }
     }
 
-    if (token && userEmail) {
-      const findUser = VALID_CREDENTIALS.find((item) => item.email === userEmail)
-      const userRole = TABLE_USER_ROLE.find((item) => item.userId === findUser.id)
-
-      const userProject = TABLE_USER_PROJECT.filter((item) => item.userId === findUser.id)
-
-      const dataUserReturn = {
-        id: findUser.id,
-        email: findUser.email,
-        role: userRole?.role,
-        userProject
+    // Handle async logic inside useEffect
+    const fetchData = async () => {
+      if (token) {
+        setAuthState((prev) => ({ ...prev, token }))
       }
 
-      setAuthState((prev) => ({ ...prev, user: dataUserReturn }))
+      if (token && userEmail) {
+        try {
+          const data = await getData(userEmail) // Await the result here
+          setAuthState((prev) => ({ ...prev, user: data }))
+        } catch (error) {
+          console.error('Error fetching user data:', error)
+          // Optionally handle error state
+          setAuthState((prev) => ({ ...prev, user: null }))
+        }
+      }
     }
+
+    fetchData() // Call the async function immediately
 
     window.addEventListener('storage', (event) => {
       if (event.key === STORAGE_KEY.ACCESS_TOKEN) {

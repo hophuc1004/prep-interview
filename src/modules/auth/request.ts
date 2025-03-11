@@ -3,7 +3,8 @@ import { END_POINT } from './constant'
 import { BaseResponse } from '~/shared/types/api-response'
 import { UserInfo } from '~/shared/types/user-info'
 import httpClient from '~/shared/utils/http-client'
-import { TABLE_USER_PROJECT, TABLE_USER_ROLE, VALID_CREDENTIALS } from '~/shared/constants/project'
+import { findOneRoleUserById, findOneUserByEmail, getAllProjects, getAllProjectsByUserId } from '~/dbIndexedDB'
+import { ROLE_USER } from '~/dataExample'
 
 export const loginRequest = async ({ email, password }: { email: string; password: string }) => {
   if (!email) {
@@ -20,18 +21,11 @@ export const loginRequest = async ({ email, password }: { email: string; passwor
     }
   }
 
-  const user = await VALID_CREDENTIALS.find((item) => item.email === email)
+  const user: any = await findOneUserByEmail(email)
+  const userRole: any = await findOneRoleUserById(user?.id)
+  const userProject = await getAllProjectsByUserId(user?.id)
 
-  const userRole = await TABLE_USER_ROLE.find((item) => item.userId === user?.id)
-
-  const userProject = await TABLE_USER_PROJECT.filter((item) => item.userId === user.id)
-
-  const dataUserReturn = {
-    id: user.id,
-    email: user.email,
-    role: userRole?.role,
-    userProject
-  }
+  const allProject = await getAllProjects()
 
   if (!user) {
     return {
@@ -47,6 +41,13 @@ export const loginRequest = async ({ email, password }: { email: string; passwor
     }
   }
 
+  const dataUserReturn = {
+    id: user.id,
+    email: user.email,
+    role: userRole?.role,
+    userProject: userRole?.role === ROLE_USER['ADMIN'] ? allProject : userProject
+  }
+
   return {
     token: 'hereareexampletoken',
     user: dataUserReturn
@@ -59,7 +60,7 @@ export const getCurrentUser = async () => {
 }
 
 export const validateEmailRequest = async (email: string) => {
-  const user = await VALID_CREDENTIALS.find((item) => item.email === email)
+  const user = await findOneUserByEmail(email)
 
   if (!user) {
     return {

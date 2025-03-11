@@ -1,8 +1,7 @@
 import classnames from 'classnames'
 import ScrollBar from 'components/Scrollbar'
 import React from 'react'
-import { CloseIcon } from '~/shared/icons'
-
+import CloseIcon from '~/shared/icons/CloseIcon'
 interface ModalProps {
   visible: boolean
   header?: React.ReactNode

@@ -4,9 +4,9 @@ import { ColumnDef } from 'components/Table/types'
 import TextField from 'components/TextField'
 import Typography from 'components/Typography'
 import debounce from 'lodash/debounce'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CloseIcon, SearchIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 import { getFullName } from '~/shared/utils/util'
 import { DatePickerV2 } from '~/modules/share/components'
 import { fDate } from '~/shared/utils/format-time'
@@ -15,13 +15,17 @@ import { useNavigate } from 'react-router-dom'
 import NoProject from '../components/NoProject'
 import { ROLE_USER, TABLE_DATA_PROJECT } from '~/shared/constants/project'
 import { Button } from 'components/Button'
+import SearchIcon from '~/shared/icons/SearchIcon'
+import ListPagination from 'components/Pagination/ListPagination'
 
-const ProjectList = ({ userRole, userProjects }: { userRole?: string; userProjects?: any[] }) => {
+const ProjectList = ({ userProjects }: { userRole?: string; userProjects?: any[] }) => {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
 
   const [originalData, setOriginalData] = useState<any[]>([]) // Store the unfiltered data
   const [dataState, setDataState] = useState<any[]>([]) // Store the filtered data
+  const [pageSize, setPageSize] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const [searchValue, setSearchValue] = useState('')
 
@@ -34,46 +38,41 @@ const ProjectList = ({ userRole, userProjects }: { userRole?: string; userProjec
     endDate: new Date()
   })
 
-  const handleGetDataWithRole = (userRole, userProjects) => {
-    switch (userRole) {
-      case ROLE_USER['ADMIN']:
-        return TABLE_DATA_PROJECT
-
-      case ROLE_USER['USER']:
-        const matchingProjects = TABLE_DATA_PROJECT.map((project) => {
-          const userProject = userProjects.find((up) => up.projectId === project.id)
-          return {
-            ...project,
-            userRole: userProject ? userProject.role : null
-          }
-        }).filter((project) => project.userRole !== null)
-
-        return matchingProjects
-
-      default:
-        return []
-    }
-  }
+  const handleChangePageSize = useCallback((pageSize: number) => {
+    setPageSize(pageSize)
+    setCurrentPage(1)
+  }, [])
 
   // Fetch initial data when userRole or userProjects change
   useEffect(() => {
-    const data = handleGetDataWithRole(userRole, userProjects)
-    setOriginalData(data) // Set the unfiltered data
-    setDataState(data) // Initially, filtered data is the same as original
-  }, [userRole, userProjects])
+    if (userProjects) {
+      setOriginalData(userProjects) // Set the unfiltered data
+    }
+  }, [userProjects])
+
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * pageSize // 0-based index
+    const endIndex = Math.min(startIndex + pageSize, userProjects?.length) // Don’t exceed array length
+    const paginatedData = userProjects.slice(startIndex, endIndex) // Slice the array
+    setDataState(paginatedData)
+  }, [currentPage, pageSize, userProjects])
 
   // Debounced search function
   const debouncedSearch = useCallback(
     debounce((searchTerm: string) => {
       if (searchTerm.trim().length > 0) {
-        const filteredData = originalData.filter((project) => {
-          const idLower = project.id.toLowerCase()
-          const nameLower = project.name.toLowerCase()
-          return idLower.includes(searchTerm.toLowerCase()) || nameLower.includes(searchTerm.toLowerCase())
+        const data = [...originalData]
+        const filteredData = data?.filter((project) => {
+          const nameLower = project?.name?.toLowerCase()
+          return project?.id === searchTerm || nameLower.includes(searchTerm.toLowerCase())
         })
         setDataState(filteredData)
       } else {
-        setDataState(originalData) // Reset to original data when search is empty
+        const startIndex = (currentPage - 1) * pageSize // 0-based index
+        const endIndex = Math.min(startIndex + pageSize, userProjects?.length) // Don’t exceed array length
+        const paginatedData = userProjects.slice(startIndex, endIndex) // Slice the array
+
+        setDataState(paginatedData) // Reset to original data when search is empty
       }
     }, 1000),
     [originalData] // Dependency on originalData
@@ -87,18 +86,20 @@ const ProjectList = ({ userRole, userProjects }: { userRole?: string; userProjec
     }
   }, [debouncedSearch, text])
 
-  const applyFilters = useCallback((startDate: Date, endDate: Date) => {
-    const data = handleGetDataWithRole(userRole, userProjects)
-    let filteredData = [...data]
+  const applyFilters = useCallback(
+    (startDate: Date, endDate: Date) => {
+      const data = [...originalData]
 
-    // Apply date range filter (assuming projects have a 'date' property)
-    filteredData = filteredData.filter((project) => {
-      const projectDate = new Date(project.created_at) // Adjust this based on your data structure
-      return projectDate >= startDate && projectDate <= endDate
-    })
+      // Apply date range filter (assuming projects have a 'date' property)
+      const filteredData = data.filter((project) => {
+        const projectDate = new Date(project.created_at) // Adjust this based on your data structure
+        return projectDate >= startDate && projectDate <= endDate
+      })
 
-    setDataState(filteredData)
-  }, [])
+      setDataState(filteredData)
+    },
+    [originalData]
+  )
 
   const handleReset = useCallback(() => {
     setDates({
@@ -112,21 +113,9 @@ const ProjectList = ({ userRole, userProjects }: { userRole?: string; userProjec
 
   const estimateSize = 58
   const viewportHeight = document.documentElement.clientHeight
-  //  66 + 56 + 56 + 16 + 16 + 64
-  const limit = 10000 //|| Math.ceil((viewportHeight - (66 + 56 + 48 + 16 + 16 + 64)) / estimateSize) + 1
-
-  const data = null
   const isFetching = false
   const isLoading = false
   const isRefetching = false
-
-  // const { data, isFetching, fetchNextPage, isLoading, isRefetching, refetch } = useEmployeeList({
-  //   limit: limit,
-  //   search: searchValue.trim(),
-  //   // sortBy: sortBy.find((item) => item.isActive)?.field,
-  //   // orderBy: !sortBy.find((item) => item.isActive)?.desc ? 'asc' : 'desc',
-  //   disabled: !isCanSeeOnboarding
-  // })
 
   const columns = useMemo<ColumnDef<any>[]>(
     () => [
@@ -184,20 +173,37 @@ const ProjectList = ({ userRole, userProjects }: { userRole?: string; userProjec
       {
         accessorKey: 'datasets',
         header: t('Total Datasets'),
-        // size: 180,
-        flex: 0.8,
-        // cell: ({}) => (
-        //   <div className='flex items-center justify-center h-full gap-2'>
-        //     <span className='text-[11px] text-gray-600 leading-[16px] font-normal mt-1'>
-        //       {0}/{12}
-        //     </span>
-        //     <ProcessComplete />
-        //   </div>
-        // ),
+        flex: 0.6,
         cell: ({ row }) => {
           return (
             <Typography variants='body' size='medium' className='text-gray-800'>
               {row?.original?.datasets?.length}
+            </Typography>
+          )
+        },
+        enableSorting: false
+      },
+      {
+        accessorKey: 'rawData',
+        header: t('Total Data Raws'),
+        flex: 0.6,
+        cell: ({ row }) => {
+          return (
+            <Typography variants='body' size='medium' className='text-gray-800'>
+              {row?.original?.rawData?.length}
+            </Typography>
+          )
+        },
+        enableSorting: false
+      },
+      {
+        accessorKey: 'model',
+        header: t('Total Models'),
+        flex: 0.6,
+        cell: ({ row }) => {
+          return (
+            <Typography variants='body' size='medium' className='text-gray-800'>
+              {row?.original?.model?.length}
             </Typography>
           )
         },
@@ -246,7 +252,7 @@ const ProjectList = ({ userRole, userProjects }: { userRole?: string; userProjec
             if (!projectId) {
               return null
             }
-            navigate(`/project-management/project-list/detail/${projectId}`) // need to pass employeeId to view checklist of one employee
+            navigate(`/project-management/project-list/detail/${projectId}`)
             return
           }}
           isLoadMore={isFetching}
@@ -312,23 +318,25 @@ const ProjectList = ({ userRole, userProjects }: { userRole?: string; userProjec
           </div>
         </div>
       }
-      {Number(dataState?.length) > 0 ? (
-        <div className='flex justify-start w-full p-4 pb-0 typography-body-md text-gray-800'>
-          {t('Projects', { count: 2 })} <span className='ml-1'>({dataState?.length})</span>
+      {dataState?.length > 0 ? (
+        <div className='flex justify-end w-full px-6'>
+          <ListPagination
+            onChangePageSize={handleChangePageSize}
+            recordName='project'
+            totalItemPerPage={dataState?.length}
+            pageSize={pageSize}
+            isEmpty={dataState?.length === 0}
+            currentPage={currentPage}
+            totalPages={Math.ceil(originalData?.length / 10)}
+            totalRecord={originalData?.length || 0}
+            onPageChange={(page) => {
+              setCurrentPage(page)
+            }}
+            isFetching={isFetching}
+          />
         </div>
       ) : null}
       {renderContent()}
-
-      <ReactTooltip
-        // clickable
-        // openOnClick
-        role='dialog'
-        id='showPending'
-        place='bottom'
-        opacity={1}
-        className='
-          !bg-black-800 font-light !text-white shadow-2xl !rounded-lg max-w-[400px]'
-      />
     </div>
   )
 }

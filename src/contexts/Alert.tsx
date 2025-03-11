@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import React, { useEffect, useState } from 'react'
-import { CloseIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 import FailedAlertIcon from '~/shared/icons/FailedAlertIcon'
 import InfoAlertIcon from '~/shared/icons/InfoAlertIcon'
 import SuccessAlertIcon from '~/shared/icons/SuccessAlertIcon'

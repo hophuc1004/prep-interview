@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react'
-import { CloseIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 import isNil from 'lodash/isNil'
 import { isEmpty } from 'lodash'
 import { IAttachment } from '~/modules/share/types'

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMatches, useNavigate } from 'react-router-dom'
 import { usePageHeaderContext } from '~/contexts/PageHeaderContext'
-import { BackIcon, PlusIcon } from '~/shared/icons'
+import BackIcon from '~/shared/icons/BackIcon'
 
 const PageHeader = () => {
   const { t } = useTranslation()

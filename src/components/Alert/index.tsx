@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CloseIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 import FailedAlertIcon from '~/shared/icons/FailedAlertIcon'
 import InfoAlertIcon from '~/shared/icons/InfoAlertIcon'
 import SuccessAlertIcon from '~/shared/icons/SuccessAlertIcon'
@@ -34,7 +34,7 @@ export const Alert: React.FC<React.PropsWithChildren<AlertProps>> = ({
     if (isVisible) {
       setShow(true)
     }
-    return () => { }
+    return () => {}
   }, []) // to render message box
 
   let icon = null

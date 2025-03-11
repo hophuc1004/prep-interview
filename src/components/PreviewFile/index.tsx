@@ -1,5 +1,5 @@
 import { FC, useEffect } from 'react'
-import { CloseIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 import DownloadIcon from '~/shared/icons/DownloadIcon'
 import UnSupportPreview from '~/assets/images/unsupport-preview.svg'
 import { Button } from 'components/Button'

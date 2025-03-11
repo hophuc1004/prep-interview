@@ -1,5 +1,5 @@
 import { Button } from 'components/Button'
-import { CloseIcon } from '~/shared/icons'
+import CloseIcon from '~/shared/icons/CloseIcon'
 
 import ModalV3 from 'components/Modal/ModalV3'
 
