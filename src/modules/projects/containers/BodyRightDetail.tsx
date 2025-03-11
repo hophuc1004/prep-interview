@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { fDateTimeReverse } from '~/shared/utils/format-time'
@@ -6,7 +6,6 @@ import { fDateTimeReverse } from '~/shared/utils/format-time'
 import { getFirstAndLastName, getFullName } from '~/shared/utils/util'
 import FieldBody from './FieldBody'
 import InfoUser from './InfoUser'
-import { getUserProject } from '../request'
 
 interface BodyRightDetailProps {
   infoDetailProject?: any
@@ -16,25 +15,11 @@ interface BodyRightDetailProps {
 }
 
 const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> = ({
-  projectId,
   infoDetailProject,
   disabledViewDetail,
   updateStateModal
 }) => {
   const { t } = useTranslation()
-
-  const [listUserDta, setListUserDta] = useState([])
-
-  useEffect(() => {
-    const listUser = getUserProject(projectId)
-
-    if (listUser) {
-      setListUserDta(listUser)
-      return
-    }
-
-    return () => {}
-  }, [projectId])
 
   return (
     <div className='flex flex-col gap-6 px-[4px] py-[3px]'>
@@ -43,7 +28,7 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         title={t('Project Name')}
         component={
           <div className='flex flex-col w-full'>
-            <p className='typography-body-md font-normal text-gray-800'>{infoDetailProject?.name}</p>
+            <p className='typography-body-md font-normal text-gray-800'>{infoDetailProject?.project?.name}</p>
           </div>
         }
         zIndex='z-40'
@@ -54,7 +39,9 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         title={t('Total Datasets')}
         component={
           <div className='flex flex-col w-full'>
-            <p className='typography-body-md font-normal text-gray-800'>{infoDetailProject?.datasets?.length || 0}</p>
+            <p className='typography-body-md font-normal text-gray-800'>
+              {infoDetailProject?.project?.datasets?.length || 0}
+            </p>
           </div>
         }
         zIndex='z-40'
@@ -91,7 +78,9 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         title={t('Total Data Raws')}
         component={
           <div className='flex flex-col w-full'>
-            <p className='typography-body-md font-normal text-gray-800'>{infoDetailProject?.dataRows?.length || 0}</p>
+            <p className='typography-body-md font-normal text-gray-800'>
+              {infoDetailProject?.project?.rawData?.length || 0}
+            </p>
           </div>
         }
         zIndex='z-40'
@@ -103,7 +92,7 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         component={
           <div className='flex flex-col w-full'>
             <p className='typography-body-md font-normal text-gray-800'>
-              {infoDetailProject?.modalVersions?.length || 0}
+              {infoDetailProject?.project.model?.length || 0}
             </p>
           </div>
         }
@@ -115,7 +104,7 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         title={t('Total Users')}
         component={
           <div className='flex flex-col w-full'>
-            <p className='typography-body-md font-normal text-gray-800'>{listUserDta?.length}</p>
+            <p className='typography-body-md font-normal text-gray-800'>{infoDetailProject?.userRoles?.length}</p>
           </div>
         }
         zIndex='z-40'
@@ -125,7 +114,7 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         title={t('List Users')}
         component={
           <div className='flex flex-col w-full'>
-            {listUserDta?.map((userDta) => {
+            {infoDetailProject?.userRoles?.map((userDta) => {
               return (
                 <InfoUser
                   disabled={disabledViewDetail}
@@ -141,26 +130,6 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         zIndex='z-40'
       />
     </div>
-  )
-}
-
-export const InfoUpdatedBy = ({ updatedAt, infoUpdateBy }) => {
-  const { t } = useTranslation()
-
-  const fullName = getFullName(infoUpdateBy?.firstName, '', infoUpdateBy?.lastName)
-  const firstLastName = getFirstAndLastName(fullName)
-
-  const infoTimeSubmitted = updatedAt && fDateTimeReverse(updatedAt)
-
-  return (
-    <p className='typography-body-sm text-gray-500 font-normal'>
-      {t('onboarding.infoUpdatedBy', {
-        updateName: firstLastName,
-        timeUpdated: infoTimeSubmitted,
-        interpolation: { escapeValue: false }
-      })}
-      {/* {`Marked as Done by ${firstLastName} on ${infoTimeSubmitted}`} */}
-    </p>
   )
 }
 

@@ -42,6 +42,7 @@ function initDB() {
       const userProjectStore = db.createObjectStore('userProjects', { keyPath: 'id', autoIncrement: true })
       userProjectStore.createIndex('id', 'id', { unique: true })
       userProjectStore.createIndex('userId', 'userId', { unique: false })
+      userProjectStore.createIndex('projectId', 'projectId', { unique: false })
 
       // Tạo objectStore cho table dataRaw
       const dataRawStore = db.createObjectStore('dataRaws', { keyPath: 'id', autoIncrement: true })
@@ -201,7 +202,12 @@ async function initializeDefaultUsers(db) {
           return {
             name: `Model ${index + 1}`,
             version: generateRandomVersion(),
-            createdAt: new Date()
+            createdAt: new Date(),
+            datasetIds: [
+              Math.floor(Math.random() * 60) + 1,
+              Math.floor(Math.random() * 60) + 2,
+              Math.floor(Math.random() * 60) + 3
+            ]
           }
         })
 
@@ -386,6 +392,31 @@ export async function findOneUserByEmail(email: string) {
   }
 }
 
+export async function getUserById(userId: number) {
+  try {
+    const db = (await initDB()) as IDBDatabase
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['users'], 'readonly')
+      const store = transaction.objectStore('users')
+      const request = store.get(userId)
+
+      request.onsuccess = function () {
+        resolve(request.result) // { id, email, ... } or undefined
+      }
+
+      request.onerror = function () {
+        reject(new Error(`Error fetching user with ID ${userId}`))
+      }
+
+      transaction.oncomplete = function () {
+        db.close()
+      }
+    })
+  } catch (error) {
+    throw new Error('Database initialization failed: ' + error)
+  }
+}
+
 export async function findOneRoleUserById(userId: number) {
   try {
     const db = (await initDB()) as IDBDatabase
@@ -396,8 +427,6 @@ export async function findOneRoleUserById(userId: number) {
       const request = userIdIndex.get(userId) // Fetch record by userId
 
       request.onsuccess = function () {
-        console.log('Requested userId:', userId)
-        console.log('Request result:', request.result)
         if (request.result) {
           resolve(request.result) // Return the full record if found
         } else {
@@ -460,7 +489,6 @@ export async function getAllProjectsByUserId(userId: number) {
             }
             completedRequests++
             if (completedRequests === projectRequests.length) {
-              console.log('Fetched projects:', projects)
               resolve(projects) // Resolve with all fetched projects
             }
           }
@@ -483,28 +511,265 @@ export async function getAllProjectsByUserId(userId: number) {
   }
 }
 
-export async function getProjectDetailDB(projectId: number) {
+export async function getRecordsByIds(storeName: string, ids: number[]) {
   try {
     const db = (await initDB()) as IDBDatabase
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(['projects'], 'readonly')
-      const store = transaction.objectStore('projects')
-      const request = store.get(projectId) // Directly use get() with the keyPath 'id'
+      const transaction = db.transaction([storeName], 'readonly')
+      const store = transaction.objectStore(storeName)
+      const requests = ids.map((id) => store.get(id))
+      const results: any[] = []
 
-      request.onsuccess = function () {
-        console.log('Project found:', request.result)
-        resolve(request.result) // Returns the project object or undefined if not found
-      }
-
-      request.onerror = function () {
-        reject(new Error(`Error fetching project with ID ${projectId}`))
-      }
+      let completed = 0
+      requests.forEach((request, index) => {
+        request.onsuccess = function () {
+          if (request.result) {
+            results[index] = request.result
+          }
+          completed++
+          if (completed === requests.length) {
+            resolve(results.filter(Boolean)) // Filter out undefined values
+          }
+        }
+        request.onerror = function () {
+          reject(new Error(`Error fetching record with ID ${ids[index]} from ${storeName}`))
+        }
+      })
 
       transaction.oncomplete = function () {
         db.close()
       }
     })
   } catch (error) {
+    throw new Error(`Database initialization failed: ${error}`)
+  }
+}
+
+export async function getProjectDetailWithRoles(projectId: number, requesterUserId: number) {
+  try {
+    const db = (await initDB()) as IDBDatabase
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['projects', 'userProjects'], 'readonly')
+      const projectStore = transaction.objectStore('projects')
+      const userProjectStore = transaction.objectStore('userProjects')
+      const projectIdIndex = userProjectStore.index('projectId')
+
+      // Fetch project details
+      const projectRequest = projectStore.get(projectId)
+      // Fetch userProject roles
+      const userProjectsRequest = projectIdIndex.getAll(projectId)
+
+      let projectDetail = null
+      let userProjectRoles = []
+
+      projectRequest.onsuccess = async function () {
+        projectDetail = projectRequest.result
+        if (!projectDetail) {
+          resolve(null)
+          return
+        }
+      }
+
+      userProjectsRequest.onsuccess = function () {
+        userProjectRoles = userProjectsRequest.result
+      }
+
+      userProjectsRequest.onsuccess = async function () {
+        userProjectRoles = userProjectsRequest.result
+        // Fetch emails for each userId in userRoles
+        const userPromises = userProjectRoles.map((role) => getUserById(role.userId))
+        const users: any = await Promise.all(userPromises)
+
+        // Combine user details with roles
+        userProjectRoles = userProjectRoles.map((role) => ({
+          ...role,
+          email: users?.find((user) => user?.id === role?.userId)?.email
+        }))
+
+        // Find requester's role
+        const requesterRole = userProjectRoles.find((role) => role.userId === requesterUserId)?.role || 'N/A'
+
+        // Fetch additional records
+        const datasets = await getRecordsByIds('dataSets', projectDetail.datasets || [])
+        const rawData = await getRecordsByIds('dataRaws', projectDetail.rawData || [])
+        const model = await getRecordsByIds('modelVersions', projectDetail.model || [])
+
+        projectDetail = {
+          ...projectDetail,
+          datasets,
+          rawData,
+          model
+        }
+
+        resolve({
+          project: projectDetail,
+          userRoles: userProjectRoles,
+          requesterRole: requesterRole
+        })
+      }
+
+      transaction.onerror = function () {
+        reject(new Error(`Error fetching project details or roles for projectId ${projectId}`))
+      }
+    })
+  } catch (error) {
     throw new Error('Database initialization failed: ' + error)
   }
+}
+
+export async function updateDataset(datasetId: number, isLocked: boolean) {
+  try {
+    const db = (await initDB()) as IDBDatabase
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['dataSets'], 'readwrite')
+      const dataSetStore = transaction.objectStore('dataSets')
+      // Get the existing dataset by ID
+      const request = dataSetStore.get(datasetId)
+
+      request.onsuccess = function () {
+        const dataset = request.result
+
+        if (!dataset) {
+          reject(new Error(`Dataset with ID ${datasetId} not found`))
+          return
+        }
+
+        // Update the is_locked field
+        dataset.is_locked = isLocked
+
+        // Put the updated dataset back into the store
+        const updateRequest = dataSetStore.put(dataset)
+
+        updateRequest.onsuccess = function () {
+          resolve(dataset) // Resolve with the updated dataset
+        }
+
+        updateRequest.onerror = function () {
+          reject(new Error('Failed to update dataset'))
+        }
+      }
+
+      request.onerror = function () {
+        reject(new Error('Failed to retrieve dataset'))
+      }
+
+      // Handle transaction errors
+      transaction.onerror = function () {
+        reject(new Error('Transaction failed'))
+      }
+    })
+  } catch (error) {
+    throw new Error(`Database initialization failed: ${error}`)
+  }
+}
+
+export async function moveDataRawToDataSet(dataRawId: number, projectId: number) {
+  const db = (await initDB()) as IDBDatabase
+
+  return new Promise((resolve, reject) => {
+    // Start a readwrite transaction for all relevant stores
+    const transaction = db.transaction(['dataRaws', 'dataSets', 'projects'], 'readwrite')
+    const dataRawStore = transaction.objectStore('dataRaws')
+    const dataSetStore = transaction.objectStore('dataSets')
+    const projectStore = transaction.objectStore('projects')
+
+    // Step 1: Get the data from dataRaws
+    const getDataRawRequest = dataRawStore.get(dataRawId)
+
+    getDataRawRequest.onsuccess = () => {
+      const dataRaw = getDataRawRequest.result
+
+      if (!dataRaw) {
+        reject(new Error(`No data found with id ${dataRawId} in dataRaws`))
+        return
+      }
+
+      // Step 2: Prepare and add to dataSets
+      const dataRawAdd = {
+        name: dataRaw?.name,
+        description: dataRaw?.description,
+        is_locked: false,
+        tags: null,
+        createdAt: new Date()
+      }
+
+      const addRequest = dataSetStore.add(dataRawAdd)
+
+      addRequest.onsuccess = () => {
+        const newDataSetId = addRequest.result
+
+        // Step 3: Update the project's datasets array
+        const getProjectRequest = projectStore.get(projectId)
+
+        getProjectRequest.onsuccess = () => {
+          const project = getProjectRequest.result
+
+          if (!project) {
+            reject(new Error(`No project found with id ${projectId}`))
+            return
+          }
+
+          // Update the datasets array
+          const updatedProject = {
+            ...project,
+            datasets: [...(project.datasets || []), newDataSetId],
+            updated_at: new Date() // Update timestamp
+          }
+
+          const updateProjectRequest = projectStore.put(updatedProject)
+
+          updateProjectRequest.onsuccess = () => {
+            // Step 4: Remove from dataRaws
+            const deleteRequest = dataRawStore.delete(dataRawId)
+
+            deleteRequest.onsuccess = () => {
+              resolve({
+                message: `Successfully moved data with id ${dataRawId} to dataSets and updated project ${projectId}`,
+                newId: newDataSetId
+              })
+            }
+
+            deleteRequest.onerror = () => {
+              console.error('Delete from dataRaws failed')
+              reject(new Error('Failed to delete from dataRaws'))
+            }
+          }
+
+          updateProjectRequest.onerror = () => {
+            console.error('Update project failed:', updateProjectRequest.error)
+            reject(new Error('Failed to update project datasets'))
+          }
+        }
+
+        getProjectRequest.onerror = () => {
+          console.error('Get project failed:', getProjectRequest.error)
+          reject(new Error('Failed to get project data'))
+        }
+      }
+
+      addRequest.onerror = () => {
+        console.error('Add to dataSets failed:', addRequest.error)
+        reject(new Error(`Failed to add to dataSets: ${addRequest.error?.message}`))
+      }
+    }
+
+    getDataRawRequest.onerror = () => {
+      console.error('Get from dataRaws failed:', getDataRawRequest.error)
+      reject(new Error('Failed to get data from dataRaws'))
+    }
+
+    transaction.oncomplete = () => {
+      console.log('Transaction completed successfully')
+    }
+
+    transaction.onerror = () => {
+      console.error('Transaction failed:', transaction.error)
+      reject(new Error(`Transaction failed: ${transaction.error?.message}`))
+    }
+
+    transaction.onabort = () => {
+      console.error('Transaction aborted:', transaction.error)
+      reject(new Error('Transaction aborted'))
+    }
+  })
 }

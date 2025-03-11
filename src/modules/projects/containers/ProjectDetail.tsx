@@ -10,7 +10,6 @@ import { ROLE_PROJECT } from '~/shared/constants/project'
 import GroupData from './GroupData'
 import ModalViewRightDetail from './ModalViewRightDetail'
 import { Loading } from 'components/Loading'
-import { getProjectDetail } from '../request'
 import ModalWarningLockAndUnlock from '../components/ModalWarningLockAndUnlock'
 import useProjectDetailControls from '../hooks/useProjectDetailControls'
 import ModalViewChildDataset from '../components/ModalViewChildDataset'
@@ -18,14 +17,19 @@ import ModalEditTag from '../components/ModalEditTag'
 import ModalRemoveUser from '../components/ModalRemoveUser'
 import ModalAddUser from '../components/ModalAddUser'
 import PlusIcon from '~/shared/icons/PlusIcon'
-import { getProjectDetailDB } from '~/dbIndexedDB'
+import { getProjectDetailWithRoles, moveDataRawToDataSet, updateDataset } from '~/dbIndexedDB'
+import DatasetsList from './DatasetsList'
+import DataRawList from './DataRawList'
+import ModelVersionList from './ModelVersionList'
+import ModalConfirmPushDataset from '../components/ModalConfirmPushDataset'
 
+export const REFETCH_PROJECT_DETAIL = 'refetch_project_detail'
 interface PersonalInfoProps {
   isFullWidth?: boolean
   isCustomWidthScroll?: boolean
 }
 
-const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidthScroll }) => {
+const ProjectDetail: React.FC<PersonalInfoProps> = ({}) => {
   const param = useParams()
 
   const [defaultValues, setDefaultValues] = useState({})
@@ -48,31 +52,25 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
   const { user, currentRole } = useCurrentUser()
   const { t } = useTranslation()
   const [detailProject, setDetailProject] = useState(null)
-  const { isLoading, updateLoading, stateModal, updateStateModal, resetControls, updateDataSetChild, dataSetChild } =
+  const { isLoading, updateLoading, stateModal, updateStateModal, resetControls, updateData, dataState } =
     useProjectDetailControls()
 
-  const [taskId, setTaskId] = useState(null)
   const [isCreateTask, setIsCreateTask] = useState(false)
   const viewportHeight = document.documentElement.clientHeight
 
   const projectId = param?.projectId
 
-  useEffect(() => {
-    const fetchProjectDetail = async () => {
-      if (projectId) {
-        const dataTest = await getProjectDetailDB(Number(projectId))
-        console.log('dataTest:', dataTest)
-
-        const projectDta = await getProjectDetail({ projectId, userId: user?.id })
-        if (projectDta) {
-          setDetailProject(projectDta)
-        }
+  const fetchProjectDetail = async () => {
+    if (projectId) {
+      const projectDta = await getProjectDetailWithRoles(Number(projectId), Number(user?.id))
+      if (projectDta) {
+        setDetailProject(projectDta)
       }
     }
+  }
 
+  useEffect(() => {
     fetchProjectDetail()
-
-    return () => {}
   }, [projectId])
 
   useEffect(() => {
@@ -116,12 +114,29 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
     }
   }
 
+  const handleUpdateDataSet = async (dataSetId, isLock) => {
+    const result = await updateDataset(dataSetId, isLock)
+    if (result) {
+      resetControls()
+      await fetchProjectDetail() // Directly refetch after update
+    }
+  }
+
+  const handleMoveDataRaw = async (dataRowId) => {
+    const result = await moveDataRawToDataSet(Number(dataRowId), Number(projectId))
+    if (result) {
+      resetControls()
+      await fetchProjectDetail() // Directly refetch after update
+    }
+  }
+
   const renderDetailView = () => {
     return (
       <div id='rightChecklistManager' className='flex min-w-[540px]'>
         <ModalViewRightDetail
           disabled={
-            detailProject?.userRole === ROLE_PROJECT['VIEWER'] || detailProject?.userRole === ROLE_PROJECT['DEVELOPER']
+            detailProject?.requesterRole === ROLE_PROJECT['VIEWER'] ||
+            detailProject?.requesterRole === ROLE_PROJECT['DEVELOPER']
           }
           projectId={projectId}
           isLoading={isLoading}
@@ -136,13 +151,25 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
     return (
       <GroupData
         disabled={
-          detailProject?.userRole === ROLE_PROJECT['VIEWER'] || detailProject?.userRole === ROLE_PROJECT['DEVELOPER']
+          detailProject?.requesterRole === ROLE_PROJECT['VIEWER'] ||
+          detailProject?.requesterRole === ROLE_PROJECT['DEVELOPER']
         }
-        arrDataset={detailProject?.datasets || []}
+        arrDataset={detailProject?.project?.datasets || []}
+        childComponent={
+          <DatasetsList
+            arrData={detailProject?.project?.datasets}
+            updateStateModal={updateStateModal}
+            disabled={
+              detailProject?.requesterRole === ROLE_PROJECT['VIEWER'] ||
+              detailProject?.requesterRole === ROLE_PROJECT['DEVELOPER']
+            }
+            updateData={updateData}
+          />
+        }
         groupLabel={'Datasets'}
         key={`datasets-${projectId}`}
         updateStateModal={updateStateModal}
-        updateDataSetChild={updateDataSetChild}
+        updateData={updateData}
       />
     )
   }
@@ -151,9 +178,21 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
     return (
       <GroupData
         disabled={
-          detailProject?.userRole === ROLE_PROJECT['VIEWER'] || detailProject?.userRole === ROLE_PROJECT['DEVELOPER']
+          detailProject?.requesterRole === ROLE_PROJECT['VIEWER'] ||
+          detailProject?.requesterRole === ROLE_PROJECT['DEVELOPER']
         }
         arrDataset={[]}
+        childComponent={
+          <DataRawList
+            arrData={detailProject?.project?.rawData}
+            updateStateModal={updateStateModal}
+            disabled={
+              detailProject?.requesterRole === ROLE_PROJECT['VIEWER'] ||
+              detailProject?.requesterRole === ROLE_PROJECT['DEVELOPER']
+            }
+            updateData={updateData}
+          />
+        }
         groupLabel={'Data Raws'}
         key={`data-raw-${detailProject?.id}`}
       />
@@ -164,9 +203,11 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
     return (
       <GroupData
         disabled={
-          detailProject?.userRole === ROLE_PROJECT['VIEWER'] || detailProject?.userRole === ROLE_PROJECT['DEVELOPER']
+          detailProject?.requesterRole === ROLE_PROJECT['VIEWER'] ||
+          detailProject?.requesterRole === ROLE_PROJECT['DEVELOPER']
         }
         arrDataset={[]}
+        childComponent={<ModelVersionList arrData={detailProject?.project?.model} />}
         groupLabel={'List Model Version'}
         key={`list-model-version-${detailProject?.id}`}
       />
@@ -186,19 +227,18 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
       <div className={classNames('flex')}>
         <div
           className={classNames('pt-4 px-4 flex flex-col gap-4 mx-auto', {
-            'max-w-[1220px]': !taskId && !isFullWidth, // Apply max-width of 1220px when right side is hidden
-            'flex-grow': !!taskId // Allow left side to take remaining space when right side is visible
+            'max-w-[1220px]': true // Apply max-width of 1220px when right side is hidden
           })}
           style={{
-            width: taskId ? 'calc(100% - 636px)' : '100%' // Set dynamic width based on taskId
+            width: '100%'
           }}
         >
           <div className='inline-flex gap-3 items-center justify-between'>
             <div className='inline-flex items-center gap-3'>
               <p className='typography-title-sm text-gray-900 font-bold'>{t('Data Info')}</p>
             </div>
-            {detailProject?.userRole === ROLE_PROJECT['VIEWER'] ||
-            detailProject?.userRole === ROLE_PROJECT['DEVELOPER'] ? null : (
+            {detailProject?.requesterRole === ROLE_PROJECT['VIEWER'] ||
+            detailProject?.requesterRole === ROLE_PROJECT['DEVELOPER'] ? null : (
               <Button
                 onClick={() => updateStateModal({ add_user: true })}
                 classNames='!text-primary-500 !border-primary-500'
@@ -212,8 +252,8 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
 
           <ScrollBar
             style={{
-              maxHeight: isCustomWidthScroll ? viewportHeight - 195 : viewportHeight - 295,
-              minHeight: isCustomWidthScroll ? viewportHeight - 195 : viewportHeight - 295
+              maxHeight: viewportHeight - 195,
+              minHeight: viewportHeight - 195
             }}
           >
             <div id='project-detail' className='flex flex-col gap-4 py-1'>
@@ -227,14 +267,26 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
       </div>
 
       <ModalWarningLockAndUnlock
-        visible={stateModal['unlock_lock']}
-        isLocked={detailProject?.is_locked}
+        visible={stateModal['unlock']}
+        isLocked={true}
         onCancel={resetControls}
-        title={
-          detailProject?.is_locked
-            ? `Your datasets will be unlocked. Are you sure you want to continue?`
-            : `Your datasets will be locked. Are you sure you want to continue?`
-        }
+        title={`Your datasets will be unlocked. Are you sure you want to continue?`}
+        onApply={() => handleUpdateDataSet(dataState?.dataSetId, false)}
+      />
+
+      <ModalWarningLockAndUnlock
+        visible={stateModal['lock']}
+        isLocked={false}
+        onCancel={resetControls}
+        title={`Your datasets will be locked. Are you sure you want to continue?`}
+        onApply={() => handleUpdateDataSet(dataState?.dataSetId, true)}
+      />
+
+      <ModalConfirmPushDataset
+        visible={stateModal['push_dataset']}
+        onCancel={resetControls}
+        title={`Your will push this data to the dataset of project. Are you sure you want to continue?`}
+        onApply={() => handleMoveDataRaw(dataState?.dataRawId)}
       />
 
       <ModalEditTag
@@ -253,7 +305,7 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
         title={`By confirming, you will remove this user out of the project. Are you sure you want to continue?`}
       />
 
-      <ModalViewChildDataset visible={stateModal['view']} onCancel={resetControls} data={dataSetChild} />
+      {/* <ModalViewChildDataset visible={stateModal['view']} onCancel={resetControls} data={dataSetChild} /> */}
 
       <ModalAddUser
         data={null}
@@ -262,32 +314,6 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({ isFullWidth, isCustomWidth
         onCancel={resetControls}
         onConfirm={() => {}}
       />
-
-      {/* <ModalConfirmDeleteTask
-        visible={!!taskIdDelete}
-        onCancel={handleCloseModalDeleteOnboardingTask}
-        onApply={() => handleDelete(taskIdDelete)}
-      /> */}
-      {/* <FormProvider
-          children={
-            <ModalCreateNewTask
-              visible={isCreateTask}
-              onCancel={handleCloseModalNewTask}
-              onApply={mutateAsync}
-              body={
-                <InfoTaskOnboarding
-                  projectId={projectId}
-                  isCreateNewTask={isCreateTask}
-                  defaultValues={defaultValues}
-                  handleSetDefaultValues={handleSetDefaultValues}
-                  employeePerson={employeePerson}
-                />
-              }
-            />
-          }
-          methods={methods}
-          onSubmit={methods.handleSubmit(handleCreateNewTask)}
-        /> */}
     </>
   )
 }

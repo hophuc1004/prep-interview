@@ -15,18 +15,10 @@ type Props = {
   taskIdSelected?: number
   totalDatasets?: number
   updateStateModal?: (payload: any) => void
-  updateDataSetChild?: (payload: any) => void
+  updateData?: (payload: any) => void
 }
 
-const RowDataSet = ({
-  index,
-  dataset,
-  disabled,
-  onRowClick,
-  totalDatasets,
-  updateStateModal,
-  updateDataSetChild
-}: Props) => {
+const RowDataSet = ({ index, dataset, disabled, onRowClick, totalDatasets, updateStateModal, updateData }: Props) => {
   const getTaskStatusLabel = () => {
     if (!dataset.is_locked) {
       return {
@@ -132,7 +124,7 @@ const RowDataSet = ({
             taskId={dataset?.id}
             isLocked={dataset?.is_locked}
             dataset={dataset}
-            updateDataSetChild={updateDataSetChild}
+            updateData={updateData}
           />
         )}
       </div>
@@ -144,12 +136,12 @@ export const ActionButtonTaskOnboarding = ({
   updateStateModal,
   taskId,
   isLocked,
-  updateDataSetChild,
+  updateData,
   dataset
 }: {
   onEdit?: () => void
   updateStateModal?: (payload: any) => void
-  updateDataSetChild?: (payload: any) => void
+  updateData?: (payload: any) => void
   taskId?: number
   isLocked?: boolean
   dataset?: any
@@ -226,7 +218,7 @@ export const ActionButtonTaskOnboarding = ({
               onClick={(e) => {
                 e.stopPropagation()
                 updateStateModal({ view: true })
-                updateDataSetChild(dataset?.data)
+                updateData(dataset?.data)
               }}
             >
               {/* <EditIcon width={24} height={24} /> */}
@@ -236,7 +228,7 @@ export const ActionButtonTaskOnboarding = ({
               className='flex items-center hover:bg-gray-100 w-full p-2 gap-2 h-[40px] min-w-[100px] overflow-hidden cursor-pointer'
               onClick={(e) => {
                 e.stopPropagation()
-                updateStateModal({ unlock_lock: true })
+                updateStateModal({ unlock: true })
               }}
             >
               {/* <TrashIcon className='text-red-600' width={24} height={24} /> */}

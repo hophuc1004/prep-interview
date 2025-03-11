@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ArrowExpandVertical from '~/shared/icons/ArrowExpandVertical'
 import ArrowCollapseVertical from '~/shared/icons/ArrowCollapseVertical'
 import classNames from 'classnames'
 import RowDataSet from './RowDataSet'
 import ModalViewChildDataset from '../components/ModalViewChildDataset'
+import DatasetsList from './DatasetsList'
 
 type Props = {
   groupLabel?: string
@@ -13,10 +14,11 @@ type Props = {
   stateModal?: any
   updateStateModal?: (payload: any) => void
   resetControls?: () => void
-  updateDataSetChild?: (payload: any) => void
+  updateData?: (payload: any) => void
+  childComponent?: React.ReactNode
 }
 
-const GroupData = ({ groupLabel, arrDataset, disabled, updateStateModal, updateDataSetChild }: Props) => {
+const GroupData = ({ groupLabel, arrDataset, disabled, updateStateModal, updateData, childComponent }: Props) => {
   const [expand, setExpand] = useState(true)
 
   useEffect(() => {
@@ -44,9 +46,11 @@ const GroupData = ({ groupLabel, arrDataset, disabled, updateStateModal, updateD
           <div className='inline-flex gap-3 items-center justify-center'>
             <span className='typography-label-lg text-gray-900 font-semibold'>{`${groupLabel}.`}</span>
           </div>
-          <div onClick={() => setExpand(!expand)}>{renderExpandIcon(expand)}</div>
+          {/* <div onClick={() => setExpand(!expand)}>{renderExpandIcon(expand)}</div> */}
         </div>
-        {expand ? (
+        {childComponent ? (
+          childComponent
+        ) : (
           <div className='body-group flex flex-col'>
             {arrDataset?.map((set, index) => {
               return (
@@ -59,12 +63,12 @@ const GroupData = ({ groupLabel, arrDataset, disabled, updateStateModal, updateD
                   updateStatus={() => {}}
                   totalDatasets={arrDataset?.length}
                   updateStateModal={updateStateModal}
-                  updateDataSetChild={updateDataSetChild}
+                  updateData={updateData}
                 />
               )
             })}
           </div>
-        ) : null}
+        )}
       </div>
     </>
   )

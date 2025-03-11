@@ -8,19 +8,24 @@ const useProjectDetailControls = () => {
   const [stateModal, setStateModal] = useState({
     view: false,
     edit_tag: false,
-    unlock_lock: false,
+    unlock: false,
     remove_user: false,
-    add_user: false
+    add_user: false,
+    lock: false,
+    push_dataset: false
   })
 
-  const [dataSetChild, setDataSetChild] = useState([])
+  const [dataState, setDataState] = useState({
+    dataSetId: null,
+    dataRawId: null
+  })
 
   const updateStateModal = (payload) => {
     setStateModal((prev) => ({ ...prev, ...payload }))
   }
 
-  const updateDataSetChild = (value) => {
-    setDataSetChild(value)
+  const updateData = (value) => {
+    setDataState(value)
   }
 
   // Functions to update each state
@@ -38,13 +43,15 @@ const useProjectDetailControls = () => {
     setStateModal({
       view: false,
       edit_tag: false,
-      unlock_lock: false,
+      unlock: false,
       remove_user: false,
-      add_user: false
+      add_user: false,
+      lock: false,
+      push_dataset: false
     })
 
     hideAllTooltips()
-    setDataSetChild([])
+    updateData({ dataSetId: null, dataRawId: null })
   }
 
   // Return states and their update functions
@@ -54,8 +61,8 @@ const useProjectDetailControls = () => {
     resetControls,
     updateStateModal,
     stateModal,
-    dataSetChild,
-    updateDataSetChild
+    dataState,
+    updateData
   }
 }
 

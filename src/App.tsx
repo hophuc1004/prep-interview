@@ -32,7 +32,7 @@ function App() {
     }
   }
 
-  // startApp()
+  startApp()
 
   return (
     <div>
