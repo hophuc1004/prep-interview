@@ -93,14 +93,44 @@ export const TABLE_USER_PROJECT = [
     createdAt: new Date()
   },
   {
+    userId: 2,
+    projectId: 4,
+    role: ROLE_PROJECT['VIEWER'],
+    createdAt: new Date()
+  },
+  {
     userId: 3,
     projectId: 1,
     role: ROLE_PROJECT['DEVELOPER'],
     createdAt: new Date()
   },
   {
+    userId: 3,
+    projectId: 4,
+    role: ROLE_PROJECT['OWNER'],
+    createdAt: new Date()
+  },
+  {
+    userId: 3,
+    projectId: 5,
+    role: ROLE_PROJECT['DEVELOPER'],
+    createdAt: new Date()
+  },
+  {
     userId: 4,
     projectId: 1,
+    role: ROLE_PROJECT['VIEWER'],
+    createdAt: new Date()
+  },
+  {
+    userId: 4,
+    projectId: 2,
+    role: ROLE_PROJECT['DEVELOPER'],
+    createdAt: new Date()
+  },
+  {
+    userId: 4,
+    projectId: 3,
     role: ROLE_PROJECT['VIEWER'],
     createdAt: new Date()
   }
@@ -232,6 +262,24 @@ export const TABLE_PROJECT = [
     datasets: [49, 50, 51, 52, 53, 54, 55, 56, 57],
     rawData: [25, 26, 27],
     model: [25, 26, 27]
+  },
+  {
+    name: 'Project 15',
+    metadata: {},
+    created_at: new Date(),
+    updated_at: new Date(),
+    datasets: [49, 52, 53, 54, 57],
+    rawData: [27, 30, 31],
+    model: [27, 29]
+  },
+  {
+    name: 'Project 16',
+    metadata: {},
+    created_at: new Date(),
+    updated_at: new Date(),
+    datasets: [50, 51, 56, 57],
+    rawData: [21, 22, 29],
+    model: [23, 26, 28]
   }
 ]
 
