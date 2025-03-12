@@ -12,12 +12,14 @@ interface BodyRightDetailProps {
   projectId?: string
   disabledViewDetail?: boolean
   updateStateModal?: (payload: any) => void
+  updateData?: (payload: any) => void
 }
 
 const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> = ({
   infoDetailProject,
   disabledViewDetail,
-  updateStateModal
+  updateStateModal,
+  updateData
 }) => {
   const { t } = useTranslation()
 
@@ -121,7 +123,9 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
                   email={userDta?.email}
                   role={userDta?.role}
                   key={userDta?.email}
+                  userId={userDta?.id}
                   updateStateModal={updateStateModal}
+                  updateData={updateData}
                 />
               )
             })}

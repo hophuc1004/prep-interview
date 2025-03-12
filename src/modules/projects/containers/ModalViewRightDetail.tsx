@@ -13,9 +13,17 @@ type Props = {
   userEmployeeId?: number
   infoDetailProject?: any
   updateStateModal?: (payload: any) => void
+  updateData?: (payload: any) => void
 }
 
-const ModalViewRightDetail = ({ projectId, disabled, infoDetailProject, isLoading, updateStateModal }: Props) => {
+const ModalViewRightDetail = ({
+  projectId,
+  disabled,
+  infoDetailProject,
+  isLoading,
+  updateStateModal,
+  updateData
+}: Props) => {
   const { t } = useTranslation()
 
   const viewportHeight = document.documentElement.clientHeight
@@ -49,6 +57,7 @@ const ModalViewRightDetail = ({ projectId, disabled, infoDetailProject, isLoadin
           infoDetailProject={infoDetailProject}
           projectId={projectId}
           updateStateModal={updateStateModal}
+          updateData={updateData}
         />
       </ScrollBar>
     </div>

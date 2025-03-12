@@ -17,7 +17,8 @@ const useProjectDetailControls = () => {
 
   const [dataState, setDataState] = useState({
     dataSetId: null,
-    dataRawId: null
+    dataRawId: null,
+    userIdRemove: null
   })
 
   const updateStateModal = (payload) => {

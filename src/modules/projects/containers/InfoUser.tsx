@@ -5,9 +5,11 @@ interface InfoUserProps {
   role?: string
   disabled?: boolean
   updateStateModal?: (payload: any) => void
+  updateData?: (payload: any) => void
+  userId?: number
 }
 
-const InfoUser = ({ email, role, disabled, updateStateModal }: InfoUserProps) => {
+const InfoUser = ({ email, role, disabled, updateStateModal, updateData, userId }: InfoUserProps) => {
   return (
     <div
       className={classNames('flex items-center justify-between flex-1 relative gap-3 p-2', {
@@ -22,7 +24,13 @@ const InfoUser = ({ email, role, disabled, updateStateModal }: InfoUserProps) =>
         </div>
       </div>
       {disabled ? null : (
-        <div className='cursor-pointer' onClick={() => updateStateModal({ remove_user: true })}>
+        <div
+          className='cursor-pointer'
+          onClick={() => {
+            updateStateModal({ remove_user: true })
+            updateData({ userIdRemove: userId })
+          }}
+        >
           <CloseIcon className='text-gray-800' width={24} height={24} />
         </div>
       )}

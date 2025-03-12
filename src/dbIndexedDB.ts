@@ -366,6 +366,39 @@ export async function getAllProjects() {
   }
 }
 
+export async function getProjectById(projectId: number) {
+  try {
+    const db = (await initDB()) as IDBDatabase
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['projects'], 'readonly')
+      const store = transaction.objectStore('projects')
+      const request = store.get(projectId) // Use get() instead of getAll() to fetch by ID
+
+      request.onsuccess = function () {
+        if (request.result) {
+          resolve(request.result) // Return the single project object
+        } else {
+          reject(new Error(`No project found with id ${projectId}`))
+        }
+      }
+
+      request.onerror = function () {
+        reject(new Error('Error fetching project: ' + request.error?.message))
+      }
+
+      transaction.oncomplete = function () {
+        db.close()
+      }
+
+      transaction.onerror = function () {
+        reject(new Error('Transaction failed: ' + transaction.error?.message))
+      }
+    })
+  } catch (error) {
+    throw new Error('Database initialization failed: ' + error)
+  }
+}
+
 export async function findOneUserByEmail(email: string) {
   try {
     const db = (await initDB()) as IDBDatabase
@@ -772,4 +805,208 @@ export async function moveDataRawToDataSet(dataRawId: number, projectId: number)
       reject(new Error('Transaction aborted'))
     }
   })
+}
+
+export async function addUserToProject(
+  email: string,
+  password: string,
+  projectId: number,
+  role: string // e.g., "owner", "editor", etc.
+) {
+  const db = (await initDB()) as IDBDatabase
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['users', 'roleUsers', 'userProjects'], 'readwrite')
+    const userStore = transaction.objectStore('users')
+    const roleUserStore = transaction.objectStore('roleUsers')
+    const userProjectStore = transaction.objectStore('userProjects')
+
+    // Step 1: Add user to users table
+    const user = {
+      email,
+      password,
+      createdAt: new Date()
+    }
+
+    const addUserRequest = userStore.add(user)
+
+    addUserRequest.onsuccess = () => {
+      const userId = addUserRequest.result
+      console.log(`User added with ID: ${userId}`)
+
+      // Step 2: Add role to roleUsers table
+      const roleUser = {
+        userId,
+        role, // Store the role string (e.g., "owner")
+        createdAt: new Date()
+      }
+
+      const addRoleRequest = roleUserStore.add(roleUser)
+
+      addRoleRequest.onsuccess = () => {
+        const roleUserId = addRoleRequest.result
+        console.log(`Role added with ID: ${roleUserId}`)
+
+        // Step 3: Link user to project in userProjects table
+        const userProject = {
+          userId,
+          projectId,
+          role, // Optionally store role here too for easier querying
+          createdAt: new Date()
+        }
+
+        const addUserProjectRequest = userProjectStore.add(userProject)
+
+        addUserProjectRequest.onsuccess = () => {
+          const userProjectId = addUserProjectRequest.result
+          console.log(`User linked to project with ID: ${userProjectId}`)
+
+          resolve({
+            success: true,
+            userId,
+            roleUserId,
+            userProjectId,
+            message: `User ${email} added to project ${projectId} with role ${role}`
+          })
+        }
+
+        addUserProjectRequest.onerror = () => {
+          console.error('Error adding to userProjects:', addUserProjectRequest.error)
+          reject(new Error('Failed to link user to project'))
+        }
+      }
+
+      addRoleRequest.onerror = () => {
+        console.error('Error adding to roleUsers:', addRoleRequest.error)
+        reject(new Error('Failed to add user role'))
+      }
+    }
+
+    addUserRequest.onerror = () => {
+      console.error('Error adding user:', addUserRequest.error)
+      reject(new Error('Failed to add user'))
+    }
+
+    transaction.oncomplete = () => {
+      console.log('Transaction completed successfully')
+      db.close()
+    }
+
+    transaction.onerror = () => {
+      console.error('Transaction failed:', transaction.error)
+      reject(new Error(`Transaction failed: ${transaction.error?.message}`))
+    }
+  })
+}
+
+export async function removeUserFromProject(
+  userId: number,
+  projectId: number,
+  removeRoleIfLastProject: boolean = true
+) {
+  try {
+    const db = (await initDB()) as IDBDatabase
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['userProjects', 'roleUsers'], 'readwrite')
+      const userProjectStore = transaction.objectStore('userProjects')
+      const roleUserStore = transaction.objectStore('roleUsers')
+
+      // Step 1: Find and remove the user-project association
+      const userProjectIndex = userProjectStore.index('userId')
+      const getUserProjectsRequest = userProjectIndex.getAll(userId)
+
+      getUserProjectsRequest.onsuccess = () => {
+        const userProjects = getUserProjectsRequest.result
+
+        // Find the specific user-project entry to delete
+        const targetUserProject = userProjects.find((up: any) => up.userId === userId && up.projectId === projectId)
+
+        if (!targetUserProject) {
+          reject(new Error(`No association found for user ${userId} and project ${projectId}`))
+          return
+        }
+
+        const deleteUserProjectRequest = userProjectStore.delete(targetUserProject.id)
+
+        deleteUserProjectRequest.onsuccess = () => {
+          console.log(`Removed user ${userId} from project ${projectId}`)
+
+          // Step 2 (Optional): Check if user has other projects and remove role if specified
+          if (removeRoleIfLastProject) {
+            const remainingProjects = userProjects.filter((up: any) => up.id !== targetUserProject.id)
+
+            if (remainingProjects.length === 0) {
+              // No other projects, remove from roleUsers
+              const roleUserIndex = roleUserStore.index('userId')
+              const getRoleRequest = roleUserIndex.get(userId)
+
+              getRoleRequest.onsuccess = () => {
+                const roleUser = getRoleRequest.result
+                if (roleUser) {
+                  const deleteRoleRequest = roleUserStore.delete(roleUser.id)
+
+                  deleteRoleRequest.onsuccess = () => {
+                    console.log(`Removed role for user ${userId} as they have no projects left`)
+                    resolve({
+                      success: true,
+                      message: `User ${userId} removed from project ${projectId} and role cleaned up`
+                    })
+                  }
+
+                  deleteRoleRequest.onerror = () => {
+                    console.error('Error deleting role:', deleteRoleRequest.error)
+                    reject(new Error('Failed to delete user role'))
+                  }
+                } else {
+                  resolve({
+                    success: true,
+                    message: `User ${userId} removed from project ${projectId}`
+                  })
+                }
+              }
+
+              getRoleRequest.onerror = () => {
+                console.error('Error fetching role:', getRoleRequest.error)
+                reject(new Error('Failed to check user role'))
+              }
+            } else {
+              // User still has other projects, resolve without touching roleUsers
+              resolve({
+                success: true,
+                message: `User ${userId} removed from project ${projectId}`
+              })
+            }
+          } else {
+            // Skip role removal
+            resolve({
+              success: true,
+              message: `User ${userId} removed from project ${projectId}`
+            })
+          }
+        }
+
+        deleteUserProjectRequest.onerror = () => {
+          console.error('Error deleting user-project:', deleteUserProjectRequest.error)
+          reject(new Error('Failed to remove user from project'))
+        }
+      }
+
+      getUserProjectsRequest.onerror = () => {
+        console.error('Error fetching user projects:', getUserProjectsRequest.error)
+        reject(new Error('Failed to fetch user projects'))
+      }
+
+      transaction.oncomplete = () => {
+        console.log('Transaction completed successfully')
+        db.close()
+      }
+
+      transaction.onerror = () => {
+        console.error('Transaction failed:', transaction.error)
+        reject(new Error(`Transaction failed: ${transaction.error?.message}`))
+      }
+    })
+  } catch (error) {
+    throw new Error('Database initialization failed: ' + error)
+  }
 }

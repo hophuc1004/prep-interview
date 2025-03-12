@@ -3,7 +3,6 @@ import ScrollBar from 'components/Scrollbar'
 import { useEffect, useState } from 'react'
 import useCurrentUser from '~/hooks/useCurrentUser'
 import classNames from 'classnames'
-import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Button } from 'components/Button'
 import { ROLE_PROJECT } from '~/shared/constants/project'
@@ -12,12 +11,17 @@ import ModalViewRightDetail from './ModalViewRightDetail'
 import { Loading } from 'components/Loading'
 import ModalWarningLockAndUnlock from '../components/ModalWarningLockAndUnlock'
 import useProjectDetailControls from '../hooks/useProjectDetailControls'
-import ModalViewChildDataset from '../components/ModalViewChildDataset'
 import ModalEditTag from '../components/ModalEditTag'
 import ModalRemoveUser from '../components/ModalRemoveUser'
 import ModalAddUser from '../components/ModalAddUser'
 import PlusIcon from '~/shared/icons/PlusIcon'
-import { getProjectDetailWithRoles, moveDataRawToDataSet, updateDataset } from '~/dbIndexedDB'
+import {
+  addUserToProject,
+  getProjectDetailWithRoles,
+  moveDataRawToDataSet,
+  removeUserFromProject,
+  updateDataset
+} from '~/dbIndexedDB'
 import DatasetsList from './DatasetsList'
 import DataRawList from './DataRawList'
 import ModelVersionList from './ModelVersionList'
@@ -32,30 +36,12 @@ interface PersonalInfoProps {
 const ProjectDetail: React.FC<PersonalInfoProps> = ({}) => {
   const param = useParams()
 
-  const [defaultValues, setDefaultValues] = useState({})
-  const [employeePerson, setEmployeePerson] = useState({
-    id: null,
-    name: null,
-    joinDate: null,
-    departmentId: null,
-    status: null,
-    departmentName: null
-  })
-
-  const methods = useForm({
-    mode: 'all',
-    defaultValues
-  })
-
-  // const queryClient = useQueryClient()
-
-  const { user, currentRole } = useCurrentUser()
+  const { user } = useCurrentUser()
   const { t } = useTranslation()
   const [detailProject, setDetailProject] = useState(null)
   const { isLoading, updateLoading, stateModal, updateStateModal, resetControls, updateData, dataState } =
     useProjectDetailControls()
 
-  const [isCreateTask, setIsCreateTask] = useState(false)
   const viewportHeight = document.documentElement.clientHeight
 
   const projectId = param?.projectId
@@ -86,34 +72,6 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({}) => {
     }
   }, [])
 
-  const resetForm = () => {
-    const resetValues = {
-      taskName: null,
-      status: false,
-      group: null,
-      person: null,
-      dueDate: null,
-      dueTime: null,
-      taskDescription: null,
-      note: null,
-      isDue: false
-    }
-
-    methods.reset(resetValues)
-  }
-
-  const onClickCreateTask = (paramEmployeeOnboardingId) => {
-    if (!paramEmployeeOnboardingId) {
-      // handleSetEmLifeCycleState({ isCreateTaskGlobal: true })
-      // if (handleSetEmployeeManageState) {
-      //   handleSetEmployeeManageState({ isCreateTaskEmployeeManage: true })
-      //   return
-      // }
-    } else {
-      setIsCreateTask(true)
-    }
-  }
-
   const handleUpdateDataSet = async (dataSetId, isLock) => {
     const result = await updateDataset(dataSetId, isLock)
     if (result) {
@@ -124,6 +82,22 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({}) => {
 
   const handleMoveDataRaw = async (dataRowId) => {
     const result = await moveDataRawToDataSet(Number(dataRowId), Number(projectId))
+    if (result) {
+      resetControls()
+      await fetchProjectDetail() // Directly refetch after update
+    }
+  }
+
+  const handleCreateUser = async ({ email, password, projectId, role }) => {
+    const result = await addUserToProject(email, password, projectId, role)
+    if (result) {
+      resetControls()
+      await fetchProjectDetail() // Directly refetch after update
+    }
+  }
+
+  const handleRemoveUser = async (userRemoveId, projectId) => {
+    const result = await removeUserFromProject(Number(userRemoveId), Number(projectId))
     if (result) {
       resetControls()
       await fetchProjectDetail() // Directly refetch after update
@@ -142,6 +116,7 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({}) => {
           isLoading={isLoading}
           infoDetailProject={detailProject}
           updateStateModal={updateStateModal}
+          updateData={updateData}
         />
       </div>
     )
@@ -303,6 +278,7 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({}) => {
         visible={stateModal['remove_user']}
         onCancel={resetControls}
         title={`By confirming, you will remove this user out of the project. Are you sure you want to continue?`}
+        onApply={() => handleRemoveUser(dataState.userIdRemove, projectId)}
       />
 
       {/* <ModalViewChildDataset visible={stateModal['view']} onCancel={resetControls} data={dataSetChild} /> */}
@@ -312,7 +288,8 @@ const ProjectDetail: React.FC<PersonalInfoProps> = ({}) => {
         visible={stateModal['add_user']}
         headerTitle={`${t('Add User')}`}
         onCancel={resetControls}
-        onConfirm={() => {}}
+        onConfirm={handleCreateUser}
+        projectId={Number(projectId)}
       />
     </>
   )
