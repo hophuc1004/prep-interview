@@ -3,7 +3,7 @@ import ScrollBar from 'components/Scrollbar'
 import React, { useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { useTranslation } from 'react-i18next'
-import { Checkbox, CheckboxState } from 'components/Checkbox'
+import { CheckboxState, CheckboxV2 } from 'components/CheckboxV2'
 
 interface OptionProps {
   id?: number
@@ -162,7 +162,7 @@ export const MultipleSelectCheckbox: React.FC<CustomSelectProps> = ({
               <div className='flex flex-col gap-1 p-3'>
                 {options.map((project) => {
                   return (
-                    <Checkbox
+                    <CheckboxV2
                       id={`project-${project.id}`}
                       value={project.id}
                       key={`project-${project.id}`}
@@ -170,7 +170,7 @@ export const MultipleSelectCheckbox: React.FC<CustomSelectProps> = ({
                       onChange={(v: number, s) => onChangeCriteria(v, s)}
                     >
                       {project.name}
-                    </Checkbox>
+                    </CheckboxV2>
                   )
                 })}
               </div>

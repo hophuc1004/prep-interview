@@ -1,4 +1,4 @@
-import { Checkbox, CheckboxState } from 'components/Checkbox'
+import { CheckboxState, CheckboxV2 } from 'components/CheckboxV2'
 
 interface SingleCheckboxProps {
   title?: string
@@ -18,14 +18,13 @@ const SingleCheckbox: React.FC<SingleCheckboxProps> = ({
   showOrdinal,
   ordinal,
   disabled,
-  isOnchangeFromLabel,
   keyCheckbox
 }) => {
   return (
     <div className='flex items-center'>
       {showOrdinal ? (
-        <Checkbox
-          isOnchangeFromLabel={isOnchangeFromLabel}
+        <CheckboxV2
+          // isOnchangeFromLabel={isOnchangeFromLabel}
           disabled={disabled}
           id={`option-${keyCheckbox}`}
           value={value}
@@ -35,10 +34,10 @@ const SingleCheckbox: React.FC<SingleCheckboxProps> = ({
           onChange={onChangeOption}
         >
           {`${ordinal}. ${title}`}
-        </Checkbox>
+        </CheckboxV2>
       ) : (
-        <Checkbox
-          isOnchangeFromLabel={isOnchangeFromLabel}
+        <CheckboxV2
+          // isOnchangeFromLabel={isOnchangeFromLabel}
           disabled={disabled}
           id={`option-${keyCheckbox}`}
           value={value}
@@ -47,7 +46,7 @@ const SingleCheckbox: React.FC<SingleCheckboxProps> = ({
           onChange={onChangeOption}
         >
           {title}
-        </Checkbox>
+        </CheckboxV2>
       )}
     </div>
   )
