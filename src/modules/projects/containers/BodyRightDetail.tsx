@@ -55,7 +55,7 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         component={
           <div className='flex flex-col w-full'>
             <p className='typography-body-md font-normal text-gray-800'>
-              {infoDetailProject?.datasets?.filter((set) => !set.is_locked)?.length || 0}
+              {infoDetailProject?.project?.datasets?.filter((set) => !set.is_locked)?.length || 0}
             </p>
           </div>
         }
@@ -68,7 +68,7 @@ const BodyRightDetail: React.FC<React.PropsWithChildren<BodyRightDetailProps>> =
         component={
           <div className='flex flex-col w-full'>
             <p className='typography-body-md font-normal text-gray-800'>
-              {infoDetailProject?.datasets?.filter((set) => set.is_locked)?.length || 0}
+              {infoDetailProject?.project?.datasets?.filter((set) => set.is_locked)?.length || 0}
             </p>
           </div>
         }
